@@ -1,0 +1,98 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+interface InfoKampus {
+  id: number;
+  judul: string;
+  tanggal: string;
+  tipe: string;
+}
+
+// Menarik data dari API lokal pengumuman
+const response = await fetch('http://localhost:4321/api/pengumuman');
+const daftarPengumuman: InfoKampus[] = await response.json();
+
+// Data Keunggulan Kampus untuk E-Brosur
+const keunggulan = [
+  "Terakreditasi Resmi BAN-PT & LAMDIK",
+  "Moda Pembelajaran Hybrid (Fleksibel)",
+  "Dosen Berkualifikasi S-2 & S-3",
+  "Biaya Kuliah Dapat Diangsur",
+  "Fasilitas Gedung Milik Sendiri"
+];
+---
+
+<Layout title="Portal Resmi - STIT YA'MAL Tangerang">
+	<main style="padding: 40px 20px; max-width: 1100px; margin: 0 auto; color: #334155;">
+		
+		<!-- BAGIAN ATAS: HERO SAMBUTAN RINGKAS (ALA PORTAL BINUS) -->
+		<section style="text-align: left; margin-bottom: 40px; border-bottom: 1px solid #e2e8f0; padding-bottom: 30px;">
+	
+			<h1 style="font-size: 2.6rem; margin: 0 0 10px 0; color: #1e293b; font-weight: 800; letter-spacing: -0.5px; text-align: center;">
+				Welcome to STIT YA'MAL Tangerang
+			</h1>
+			<p  style="color: #64748b; margin: 0; font-size: 1.1rem; font-weight: 400; text-align: center">
+				Layanan sistem informasi akademik terpadu Sekolah Tinggi Ilmu Tarbiyah (STIT) YA'MAL Tangerang.
+			</p>
+		</section>
+
+		<!-- BAGIAN BAWAH: STRUKTUR DUA KOLOM (KIRI & KANAN) -->
+		<div style="display: flex; gap: 30px; flex-wrap: wrap;">
+			
+			<!-- KOLOM KIRI: PENGUMUMAN & ARTIKEL TERBARU (60% LEBAR) -->
+			<div style="flex: 1; min-width: 320px;">
+				<h2 style="font-size: 1.4rem; margin-top: 0; margin-bottom: 20px; color: #1e293b; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+					📢 Pengumuman Terbaru
+				</h2>
+				
+				<div style="display: flex; flex-direction: column; gap: 15px;">
+					{daftarPengumuman.map((artikel) => (
+						<div style="padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff; box-shadow: 0 2px 4px rgba(0,0,0,0.01);">
+							<span style="font-size: 0.75rem; color: #0f766e; background-color: #ccfbf1; padding: 4px 8px; border-radius: 6px; font-weight: bold; border: 1px solid #99f6e4; text-transform: uppercase; display: inline-block; margin-bottom: 8px;">
+								{artikel.tipe}
+							</span>
+							<h3 style="margin: 0 0 6px 0; font-size: 1.15rem; color: #1e293b; font-weight: 700; line-height: 1.4;">
+								{artikel.judul}
+							</h3>
+							<p style="margin: 0; font-size: 0.85rem; color: #64748b;">
+								Diterbitkan: {artikel.tanggal}
+							</p>
+						</div>
+					))}
+				</div>
+			</div>
+
+			<!-- KOLOM KANAN: E-BROSUR INTERAKTIF PMB (40% LEBAR) -->
+			<div style="width: 380px; min-width: 300px;">
+				<div style="background-color: #f8fafc; border: 2px dashed #0d9488; padding: 25px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.01); position: sticky; top: 100px;">
+					<span style="font-size: 0.75rem; background-color: #0d9488; color: white; padding: 4px 10px; border-radius: 9999px; font-weight: bold; display: inline-block; margin-bottom: 12px; letter-spacing: 0.5px;">
+						ADMISSIONS 2026/2027
+					</span>
+					
+					<h2 style="font-size: 1.3rem; margin-top: 0; margin-bottom: 8px; color: #1e293b; font-weight: 800;">
+						E-Brosur PMB Online
+					</h2>
+					<p style="color: #64748b; font-size: 0.85rem; line-height: 1.5; margin-bottom: 20px;">
+						Unduh brosur digital resmi dan pelajari keunggulan program studi S1 Pendidikan Agama Islam (PAI).
+					</p>
+
+					<!-- List Keunggulan Ringkas dari Brosur -->
+					<div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 25px;">
+						{keunggulan.map((item) => (
+							<div style="display: flex; align-items: center; gap: 8px; font-size: 0.88rem; color: #334155; font-weight: 500;">
+								<span style="color: #0d9488; font-weight: bold;">✓</span>
+								<span>{item}</span>
+							</div>
+						))}
+					</div>
+
+					<!-- Tombol Aksi Unduh E-Brosur -->
+					<a href="#" style="text-decoration: none; background-color: #0d9488; color: white; padding: 10px 16px; border-radius: 8px; font-weight: bold; font-size: 0.9rem; text-align: center; display: block; box-shadow: 0 4px 6px rgba(13,148,136,0.15);">
+						📥 Download Digital Brochure
+					</a>
+				</div>
+			</div>
+
+		</div>
+	</main>
+</Layout>

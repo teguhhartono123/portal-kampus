@@ -1,0 +1,129 @@
+---
+import Layout from '../layouts/Layout.astro';
+// 1. CARA TERBARU ASTRO v6: Menggunakan modul resmi bawaan runtime Cloudflare
+import { env } from 'cloudflare:workers';
+
+interface FotoDatabase {
+  id: number;
+  url: string;
+  deskripsi: string;
+  tanggal_upload: string;
+}
+
+let daftarFoto: FotoDatabase[] = [];
+let pesanError = "";
+
+try {
+  // 2. Memanggil tangki database D1 lokal Anda secara resmi
+  const db = env.database_campuses || env.database_kampus;
+
+  if (!db) {
+    throw new Error("Koneksi database 'database_kampus' tidak ditemukan! Pastikan nama binding di wrangler.jsonc sudah sesuai.");
+  }
+
+  // Jalankan query SQL ke database lokal Anda
+  const queryResult = await db.prepare("SELECT * FROM galeri_foto ORDER BY id DESC").all();
+  daftarFoto = queryResult.results as unknown as FotoDatabase[];
+
+} catch (error: any) {
+  pesanError = `Gagal memuat database: ${error.message}`;
+  console.error(pesanError);
+  
+  // Data cadangan otomatis jika database mengalami kendala
+  daftarFoto = [
+    { id: 1, url: "", deskripsi: "[Cadangan] Kegiatan Rapat Akademik Dosen", tanggal_upload: "" },
+    { id: 2, url: "", deskripsi: "[Cadangan] Suasana Ruang Laboratorium Komputer", tanggal_upload: "" }
+  ];
+}
+---
+
+<Layout title="Galeri Foto - STIT YA'MAL">
+  <main style="padding: 20px; font-family: sans-serif; max-width: 1000px; margin: 0 auto;">
+    
+    <!-- JUDUL UTAMA - Sekarang warnanya disatukan jadi full hitam modern (#1e293b) -->
+    <h1 style="font-size: 2.5rem; margin-bottom: 10px; color: #1e293b; font-weight: 800; letter-spacing: -0.5px;">
+      Galeri Dokumentasi STIT YA'MAL
+    </h1>
+
+    <p style="color: #64748b; margin-bottom: 30px; line-height: 1.6; font-size: 1.05rem;">
+      Sistem penyimpanan arsip foto dokumentasi kegiatan akademik dan infrastruktur Sekolah Tinggi Ilmu Tarbiyah (STIT) YA'MAL Tangerang.
+    </p>
+
+
+    {pesanError && (
+      <div style="padding: 15px; background-color: #fee2e2; color: #991b1b; border-radius: 8px; margin-bottom: 20px;">
+        {pesanError}
+      </div>
+    )}
+
+    <!-- AREA KOTAK FORMULIR UPLOAD -->
+    <div style="background-color: #f3f4f6; padding: 20px; border-radius: 12px; margin-bottom: 40px; border: 2px dashed #cbd5e1;">
+      <h3 style="margin-top: 0; color: #1e293b;">Formulir Upload Arsip Foto Kampus</h3>
+      <input type="file" id="input-file-kampus" accept="image/*" style="margin-bottom: 10px; display: block;" />
+      <button id="tombol-upload-kampus" style="padding: 8px 16px; background-color: #10b981; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">
+        Mulai Unggah Foto ke Server
+      </button>
+      <p id="status-upload" style="margin: 10px 0 0 0; font-size: 0.9rem; font-weight: bold; color: #475569;"></p>
+    </div>
+
+    <!-- STRUKTUR GRID SEKARANG MERENDER DATA REAL DARI DATABASE D1 -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
+      {daftarFoto.map((foto) => (
+        <div style="border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden; background-color: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+          
+          <!-- TRIK FIX: Menggunakan Placeholder Kamera Indigo Lokal yang Anti-Blokir Safari -->
+          <div style="width: 100%; height: 200px; background-color: #e0e7ff; display: flex; align-items: center; justify-content: center; font-size: 3rem;">
+            📷
+          </div>
+
+          <div style="padding: 15px;">
+            <h3 style="margin: 0 0 5px 0; font-size: 1.05rem; color: #111827; font-weight: 600; line-height: 1.4;">
+              {foto.deskripsi}
+            </h3>
+            <p style="margin: 0; font-size: 0.85rem; color: #9ca3af;">
+              ID Record: #{foto.id}
+            </p>
+          </div>
+        </div>
+      ))}
+    </div>
+  </main>
+</Layout>
+
+<!-- SCRIPT FRONTEND UNTUK MENEMBAK API BACKEND -->
+<script>
+  const tombol = document.getElementById('tombol-upload-kampus');
+  const input = document.getElementById('input-file-kampus') as HTMLInputElement;
+  const status = document.getElementById('status-upload');
+
+  tombol?.addEventListener('click', async () => {
+    if (!input || !input.files || input.files.length === 0) {
+      if (status) status.innerText = "❌ Silakan pilih file foto terlebih dahulu!";
+      return;
+    }
+
+    if (status) status.innerText = "⏳ Sedang memproses file dan mengunggah...";
+
+    const formData = new FormData();
+    formData.append('foto-kampus', input.files[0]);
+
+    try {
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+      });
+
+      const hasil = await response.json();
+
+      if (response.ok) {
+        if (status) status.innerHTML = `✅ ${hasil.pesan}<br>📁 Nama: ${hasil.namaFile}<br>⚖️ Ukuran: ${hasil.ukuran}`;
+        // Muat ulang halaman otomatis agar foto baru yang tersimpan langsung muncul
+        setTimeout(() => window.location.reload(), 2000);
+      } else {
+        if (status) status.innerText = `❌ Gagal: ${hasil.error}`;
+      }
+    } catch (err: any) {
+      if (status) status.innerText = `❌ Error Jaringan: ${err.message}`;
+    }
+  });
+</script>

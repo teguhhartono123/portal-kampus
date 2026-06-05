@@ -1,0 +1,81 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+// Data Visi & Misi Kampus STIT YA'MAL
+const visiMisi = {
+  visi: "Menjadi Sekolah Tinggi Ilmu Tarbiyah yang menghasilkan lulusan pendidik Islam yang profesional dan berakhlak berbasis nilai keislaman di wilayah Banten pada tahun 2030.",
+  misi: [
+    "Menyelenggarakan pendidikan dan pembelajaran yang terencana dan terstruktur untuk menghasilkan lulusan pendidik Islam yang profesional dan berakhlak.",
+    "Mendorong pelaksanaan penelitian di bidang pendidikan Islam yang sederhana dan aplikatif oleh dosen dan mahasiswa.",
+    "Melaksanakan pengabdian kepada masyarakat melalui kegiatan pendidikan, dakwah, dan pemberdayaan umat.",
+    "Mengembangkan kerjasama dengan sekolah, madrasah, dan lembaga pendidikan di wilayah Banten.",
+    "Menyelenggarakan layanan akademik yang efektif, sederhana, dan responsif bagi mahasiswa."
+
+  ]
+};
+---
+
+<Layout title="Profil Institusi - STIT YA'MAL">
+  <main style="padding: 40px 20px; font-family: sans-serif; max-width: 900px; margin: 0 auto;">
+    
+    <!-- Bagian Judul Utama -->
+    <h1 style="font-size: 2.5rem; color: #111827; margin-bottom: 10px;">
+      Profil STIT YA'MAL Tangerang
+    </h1>
+    <p style="color: #666; margin-bottom: 40px; font-size: 1.1rem; line-height: 1.6;">
+      Mengenal lebih dekat Sekolah Tinggi Ilmu Tarbiyah (STIT) YA'MAL Tangerang sebagai pencetak generasi pendidik Islam yang unggul, berintegritas, dan berkarakter mulia.
+    </p>
+
+    <!-- KOTAK SEJARAH SINGKAT -->
+    <section style="margin-bottom: 40px; padding: 25px; border: 1px solid #e5e7eb; border-radius: 12px; background-color: #ffffff; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+      <h2 style="font-size: 1.6rem; color: #4f46e5; margin-top: 0; margin-bottom: 15px; border-bottom: 2px solid #f3f4f6; padding-bottom: 10px;">
+        📜 Sejarah Singkat
+      </h2>
+      <p style="color: #334155; line-height: 1.7; font-size: 1rem; margin-bottom: 15px;">
+        Sekolah Tinggi Ilmu Tarbiyah (STIT) YA'MAL Tangerang didirikan di bawah naungan Yayasan Pendidikan Islam (YPI) Ya'mal sebagai bentuk respon nyata terhadap tingginya kebutuhan guru agama Islam profesional yang memiliki kompetensi pedagogik mutakhir serta fondasi akhlak yang kokoh.
+      </p>
+      <p style="color: #334155; line-height: 1.7; font-size: 1rem; margin: 0;">
+        Sejak awal berdiri, STIT YA'MAL terus berkomitmen untuk menyelenggarakan tridharma perguruan tinggi secara konsisten guna mencetak sarjana pendidikan (S.Pd.) yang siap berkontribusi memajukan dunia pendidikan di wilayah Tangerang, Banten, dan kancah nasional.
+      </p>
+    </section>
+
+    <!-- KOTAK VISI & MISI -->
+    <section style="margin-bottom: 40px; padding: 25px; border: 1px solid #e5e7eb; border-radius: 12px; background-color: #ffffff; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+      <h2 style="font-size: 1.6rem; color: #4f46e5; margin-top: 0; margin-bottom: 15px; border-bottom: 2px solid #f3f4f6; padding-bottom: 10px;">
+        🎯 Visi & Misi
+      </h2>
+      
+      <div style="margin-bottom: 25px;">
+        <h4 style="margin: 0 0 8px 0; color: #0f172a; font-size: 1.1rem; font-weight: bold;">Visi Institusi:</h4>
+        <p style="color: #475569; line-height: 1.6; font-size: 1rem; font-style: italic; background-color: #f8fafc; padding: 15px; border-left: 4px solid #4f46e5; margin: 0; border-radius: 0 8px 8px 0;">
+          "{visiMisi.visi}"
+        </p>
+      </div>
+
+      <div>
+        <h4 style="margin: 0 0 10px 0; color: #0f172a; font-size: 1.1rem; font-weight: bold;">Misi Institusi:</h4>
+        <ol style="color: #475569; line-height: 1.7; font-size: 1rem; padding-left: 20px; margin: 0;">
+          {visiMisi.misi.map((misiText) => (
+            <li style="margin-bottom: 10px;">{misiText}</li>
+          ))}
+        </ol>
+      </div>
+    </section>
+
+    <!-- KOTAK PROGRAM STUDI -->
+    <section style="padding: 25px; border: 1px solid #e5e7eb; border-radius: 12px; background-color: #ffffff; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+      <h2 style="font-size: 1.6rem; color: #4f46e5; margin-top: 0; margin-bottom: 15px; border-bottom: 2px solid #f3f4f6; padding-bottom: 10px;">
+        🎓 Program Studi Unggulan
+      </h2>
+      <div style="display: flex; gap: 15px; align-items: center; padding: 15px; background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px;">
+        <span style="font-size: 2rem;">📜</span>
+        <div>
+          <h4 style="margin: 0 0 5px 0; color: #166534; font-size: 1.15rem; font-weight: bold;">S1 - Pendidikan Agama Islam (PAI)</h4>
+          <p style="margin: 0; color: #14532d; font-size: 0.95rem;">
+            Menjadi Program Studi Pendidikan Agama Islam yang menghasilkan lulusan pendidik Islam yang profesional dan berakhlak di wilayah Banten pada tahun 2030.          </p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</Layout>

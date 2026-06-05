@@ -1,0 +1,74 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+// Simulasi daftar data jurnal ilmiah asli kampus STIT Ya'mal
+const daftarJurnal = [
+  {
+    id: 1,
+    judul: "Implementasi Manajemen Kurikulum Berbasis Nilai Islam di Era Digital",
+    penulis: "Dr. Ahmad Fauzi, M.Pd.",
+    vol: "Vol. 5 No. 1 (2025): Jurnal Pendidikan Islam YA'MAL",
+    status: "Terakreditasi Sinta 4"
+  },
+  {
+    id: 2,
+    judul: "Strategi Pengajaran Guru Pendidikan Agama Islam Berbasis Metodologi Kontemporer",
+    penulis: "Siti Rahmah, M.Pd.I.",
+    vol: "Vol. 4 No. 2 (2024): Jurnal Tarbiyah Islamiyah",
+    status: "Terakreditasi Sinta 4"
+  },
+  {
+    id: 3,
+    judul: "Analisis Pembentukan Akhlakul Karimah Mahasiswa Melalui Kegiatan Ekstrakurikuler Keagamaan",
+    penulis: "H. Supriyadi, M.A.",
+    vol: "Vol. 4 No. 1 (2024): Jurnal Tarbiyah Islamiyah",
+    status: "Review Proses"
+  }
+];
+---
+
+<Layout title="Jurnal Ilmiah - STIT YA'MAL">
+  <main style="padding: 40px 20px; font-family: sans-serif; max-width: 900px; margin: 0 auto;">
+    
+    <h1 style="font-size: 2.5rem; color: #111827; margin-bottom: 10px;">
+      E-Jurnal & Publikasi Ilmiah
+    </h1>
+    <p style="color: #666; margin-bottom: 40px; line-height: 1.6; font-size: 1.05rem;">
+      Pusat portal jurnal elektronik Sekolah Tinggi Ilmu Tarbiyah (STIT) YA'MAL Tangerang. Mewadahi diseminasi hasil penelitian dosen dan mahasiswa di bidang pendidikan, keguruan, dan pemikiran Islam.
+    </p>
+
+    <!-- LIST DAFTAR JURNAL ILMIAH -->
+    <div style="display: flex; flex-direction: column; gap: 20px;">
+      {daftarJurnal.map((jurnal) => (
+        <div style="padding: 20px; border: 1px solid #e5e7eb; border-radius: 12px; background-color: #ffffff; box-shadow: 0 2px 4px rgba(0,0,0,0.02); transition: transform 0.2s;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 8px;">
+            <span style="font-size: 0.75rem; background-color: #e0e7ff; color: #4f46e5; padding: 4px 10px; border-radius: 9999px; font-weight: bold; text-transform: uppercase;">
+              {jurnal.status}
+            </span>
+            <span style="font-size: 0.85rem; color: #9ca3af;">
+              ID: #{jurnal.id}
+            </span>
+          </div>
+
+          <h3 style="margin: 0 0 10px 0; font-size: 1.25rem; color: #111827; font-weight: bold; line-height: 1.4;">
+            {jurnal.judul}
+          </h3>
+
+          <p style="margin: 0 0 5px 0; font-size: 0.95rem; color: #475569; font-weight: 500;">
+            ✍️ Penulis: <span style="color: #111827;">{jurnal.penulis}</span>
+          </p>
+
+          <p style="margin: 0 0 15px 0; font-size: 0.9rem; color: #64748b; font-style: italic;">
+            📖 {jurnal.vol}
+          </p>
+
+          <!-- Tombol Simulasi Buka PDF Jurnal -->
+          <a href="#" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; background-color: #f1f5f9; color: #1e293b; text-decoration: none; border-radius: 6px; font-size: 0.85rem; font-weight: bold; border: 1px solid #e2e8f0;">
+            📄 Buka Dokumen PDF (Full-Text)
+          </a>
+        </div>
+      ))}
+    </div>
+
+  </main>
+</Layout>

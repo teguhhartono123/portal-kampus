@@ -1,0 +1,48 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+// Simulasi data inventaris fasilitas kampus STIT YA'MAL
+const daftarFasilitas = [
+  { id: 1, nama: "Gedung Utama Kampus", deskripsi: "Pusat administrasi akademik, ruang rektorat, dan aula pertemuan utama." },
+  { id: 2, nama: "Laboratorium Komputer", deskripsi: "Fasilitas komputer modern untuk praktikum digital, riset, dan ujian berbasis CAT." },
+  { id: 3, nama: "Perpustakaan Tarbiyah", deskripsi: "Koleksi lengkap kitab klasik, buku digital, jurnal ilmiah, dan ruang baca ber-AC." },
+  { id: 4, nama: "Ruang Kelas Multimedia", deskripsi: "Ruang perkuliahan yang dilengkapi proyektor LCD dan sistem audio terintegrasi." },
+  { id: 5, nama: "Masjid Al-Khairiyah Kampus", deskripsi: "Pusat kegiatan ibadah, kajian keislaman, dan pembentukan akhlakul karimah." },
+  { id: 6, nama: "Gedung Kegiatan Mahasiswa (GKM)", deskripsi: "Ruang sekretariat bersama untuk organisasi BEM, UKM, dan kreativitas mahasiswa." }
+];
+---
+
+<Layout title="Fasilitas Kampus - STIT YA'MAL">
+  <main style="padding: 40px 20px; font-family: sans-serif; max-width: 1000px; margin: 0 auto;">
+    
+    <h1 style="font-size: 2.5rem; color: #111827; margin-bottom: 10px;">
+      Sarana & Fasilitas Kampus
+    </h1>
+    <p style="color: #666; margin-bottom: 40px; line-height: 1.6; font-size: 1.05rem;">
+      STIT YA'MAL Tangerang menyediakan sarana prasarana modern dan memadai untuk menunjang kenyamanan mahasiswa dalam menempuh proses pembelajaran dan riset akademik.
+    </p>
+
+    <!-- STRUKTUR GRID LAYOUT UNTUK FASILITAS -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px;">
+      {daftarFasilitas.map((item) => (
+        <div style="border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden; background-color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02), 0 2px 4px -1px rgba(0,0,0,0.02);">
+          
+          <!-- Placeholder Visual untuk Fasilitas -->
+          <div style="width: 100%; height: 180px; background-color: #e0f2fe; display: flex; align-items: center; justify-content: center; font-size: 3rem;">
+            🏢
+          </div>
+
+          <div style="padding: 20px;">
+            <h3 style="margin: 0 0 10px 0; font-size: 1.2rem; color: #0f172a; font-weight: bold;">
+              {item.nama}
+            </h3>
+            <p style="margin: 0; font-size: 0.9rem; color: #475569; line-height: 1.5;">
+              {item.deskripsi}
+            </p>
+          </div>
+        </div>
+      ))}
+    </div>
+
+  </main>
+</Layout>

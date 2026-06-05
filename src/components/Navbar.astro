@@ -1,0 +1,33 @@
+---
+// BACKEND: Membaca path URL halaman yang sedang dibuka saat ini
+const currentPath = Astro.url.pathname;
+---
+
+<nav style="background-color: #ffffff; border-bottom: 1px solid #e5e7eb; padding: 15px 0; font-family: sans-serif; position: sticky; top: 0; z-index: 100; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+  <div style="max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 0 20px;">
+      
+        <!-- Bagian Logo Gambar & Nama Kampus -->
+    <a href="/" style="text-decoration: none; color: #111827; font-weight: bold; font-size: 1.25rem; display: flex; align-items: center; gap: 10px;">
+      <img src="/logo-kampus.png" alt="Logo STIT YA'MAL" style="width: 40px; height: 40px; object-fit: contain;" />
+      <span style="letter-spacing: -0.5px;">Portal <span style="color: #0d9488;">STIT YA'MAL</span></span>
+    </a>
+
+    <!-- Daftar Link Menu Kampus Otomatis Mengikuti Halaman Aktif -->
+    <div style="display: flex; gap: 18px; align-items: center;">
+      <a href="/" style={`text-decoration: none; font-size: 0.9rem; font-weight: ${currentPath === '/' ? '600' : '500'}; color: ${currentPath === '/' ? '#4f46e5' : '#475569'};`}>HOME</a>
+      <a href="/akreditasi" style={`text-decoration: none; font-size: 0.9rem; font-weight: ${currentPath === '/akreditasi' ? '600' : '500'}; color: ${currentPath === '/akreditasi' ? '#4f46e5' : '#475569'};`}>AKREDITASI</a>
+      <a href="/profil" style={`text-decoration: none; font-size: 0.9rem; font-weight: ${currentPath === '/profil' ? '600' : '500'}; color: ${currentPath === '/profil' ? '#4f46e5' : '#475569'};`}>PROFIL</a>
+      <a href="/akademik" style={`text-decoration: none; font-size: 0.9rem; font-weight: ${currentPath === '/akademik' ? '600' : '500'}; color: ${currentPath === '/akademik' ? '#4f46e5' : '#475569'};`}>AKADEMIK</a>
+      <a href="/fasilitas" style={`text-decoration: none; font-size: 0.9rem; font-weight: ${currentPath === '/fasilitas' ? '600' : '500'}; color: ${currentPath === '/fasilitas' ? '#4f46e5' : '#475569'};`}>FASILITAS</a>
+      <a href="/jurnal" style={`text-decoration: none; font-size: 0.9rem; font-weight: ${currentPath === '/jurnal' ? '600' : '500'}; color: ${currentPath === '/jurnal' ? '#4f46e5' : '#475569'};`}>JURNAL</a>
+      <a href="/galeri" style={`text-decoration: none; font-size: 0.9rem; font-weight: ${currentPath === '/galeri' ? '600' : '500'}; color: ${currentPath === '/galeri' ? '#4f46e5' : '#475569'};`}>GALERI FOTO</a>
+      <a href="/unduhan" style={`text-decoration: none; font-size: 0.9rem; font-weight: ${currentPath === '/unduhan' ? '600' : '500'}; color: ${currentPath === '/unduhan' ? '#4f46e5' : '#475569'};`}>UNDUHAN</a>
+      
+      <!-- Tombol Pendaftaran Mahasiswa Baru -->
+      <a href="#" style="text-decoration: none; background-color: #10b981; color: white; padding: 6px 14px; border-radius: 6px; font-weight: bold; font-size: 0.85rem; box-shadow: 0 2px 4px rgba(16,185,129,0.2); letter-spacing: 0.5px;">
+        PMB ONLINE
+      </a>
+    </div>
+
+  </div>
+</nav>
