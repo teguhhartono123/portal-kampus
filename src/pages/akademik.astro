@@ -4,113 +4,153 @@ import Layout from '../layouts/Layout.astro';
 // Data Program Studi STIT YA'MAL
 const programStudi = [
   {
-    jenjang: "S1",
-    nama: "Pendidikan Agama Islam (PAI)",
-    akreditasi: "Terakreditasi BAN-PT",
-    gelar: "Sarjana Pendidikan (S.Pd.)",
-    deskripsi: "Fokus mencetak guru Agama Islam profesional, peneliti muda bidang tarbiyah, dan praktisi pendidikan berbasis teknologi informasi Islami."
-  }
+    jenjang: 'S1',
+    nama: 'Pendidikan Agama Islam (PAI)',
+    akreditasi: 'Terakreditasi BAN-PT',
+    gelar: 'Sarjana Pendidikan (S.Pd.)',
+    deskripsi:
+      'Fokus mencetak guru Agama Islam profesional, peneliti muda bidang tarbiyah, dan praktisi pendidikan berbasis teknologi informasi Islami.',
+  },
 ];
 
 // Data Kalender Akademik Kampus STIT YA'MAL Ganjil 2026/2027
 const kalenderAkademik = [
-  { kegiatan: "Pendaftaran Ulang Mahasiswa Lama", tanggal: "01 - 15 Agustus 2026", status: "Selesai" },
-  { kegiatan: "Pengisian Kartu Rencana Studi (KRS)", tanggal: "18 - 25 Agustus 2026", status: "Selesai" },
-  { kegiatan: "Kuliah Perdana & Pembukaan Semester Ganjil", tanggal: "01 September 2026", status: "Berjalan" },
-  { kegiatan: "Ujian Tengah Semester (UTS)", tanggal: "19 - 24 Oktober 2026", status: "Mendatang" },
-  { kegiatan: "Minggu Tenang Kuliah", tanggal: "14 - 19 Desember 2026", status: "Mendatang" },
-  { kegiatan: "Ujian Akhir Semester (UAS) Ganjil", tanggal: "21 - 26 Desember 2026", status: "Mendatang" }
+  {
+    kegiatan: 'Pendaftaran Ulang Mahasiswa Lama',
+    tanggal: '01 - 15 Agustus 2026',
+    status: 'Selesai',
+  },
+  {
+    kegiatan: 'Pengisian Kartu Rencana Studi (KRS)',
+    tanggal: '18 - 25 Agustus 2026',
+    status: 'Selesai',
+  },
+  {
+    kegiatan: 'Kuliah Perdana & Pembukaan Semester Ganjil',
+    tanggal: '01 September 2026',
+    status: 'Berjalan',
+  },
+  { kegiatan: 'Ujian Tengah Semester (UTS)', tanggal: '19 - 24 Oktober 2026', status: 'Mendatang' },
+  { kegiatan: 'Minggu Tenang Kuliah', tanggal: '14 - 19 Desember 2026', status: 'Mendatang' },
+  {
+    kegiatan: 'Ujian Akhir Semester (UAS) Ganjil',
+    tanggal: '21 - 26 Desember 2026',
+    status: 'Mendatang',
+  },
 ];
 ---
 
-<Layout title="Akademik - STIT YA'MAL">
-  <main style="padding: 40px 20px; font-family: sans-serif; max-width: 950px; margin: 0 auto;">
+<Layout title="Program & Informasi Akademik - STIT YA'MAL">
+  <main style="padding: 40px 20px; font-family: sans-serif; max-width: 850px; margin: 0 auto; display: flex; flex-direction: column; gap: 40px;">
     
-    <h1 style="font-size: 2.5rem; color: #111827; margin-bottom: 10px;">
-      Program & Informasi Akademik
-    </h1>
-    <p style="color: #666; line-height: 1.7; font-size: 1.05rem; margin-bottom: 40px;">
-      Selamat datang di pusat layanan akademik Sekolah Tinggi Ilmu Tarbiyah (STIT) YA'MAL Tangerang. Di bawah ini tersedia informasi program studi yang diselenggarakan beserta siklus jadwal perkuliahan.
-    </p>
+    <!-- Bagian Judul Utama (Lebih Kokoh dengan Slate 900 & 500) -->
+    <div style="text-align: left; padding: 0 5px;">
+      <h1 style="font-size: 2.6rem; font-weight: 800; color: #0f172a; margin-top: 0; margin-bottom: 12px; letter-spacing: -0.5px;">
+        Program & Informasi Akademik
+      </h1>
+      <p style="color: #64748b; font-size: 1.15rem; line-height: 1.6; font-weight: 400; margin: 0;">
+        Selamat datang di pusat layanan akademik Sekolah Tinggi Ilmu Tarbiyah (STIT) YA'MAL Tangerang. Di bawah ini tersedia informasi program studi yang diselenggarakan beserta siklus jadwal perkuliahan.
+      </p>
+    </div>
 
-    <!-- BAGIAN 1: PROGRAM STUDI / JURUSAN (BAGIAN ATAS) -->
-    <section style="margin-bottom: 50px;">
-      <h2 style="font-size: 1.6rem; color: #111827; margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
-        🎓 Program Studi Unggulan
+    <!-- BAGIAN 1: PROGRAM STUDI / JURUSAN -->
+    <section style="margin: 0;">
+      <h2 style="font-size: 1.4rem; color: #0f172a; font-weight: 700; margin-top: 0; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+        <span>🎓</span> Program Studi Unggulan
       </h2>
-      
-      {programStudi.map((prodi) => (
-        <div style="padding: 25px; border: 1px solid #e5e7eb; border-radius: 12px; background-color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
-            <div style="display: flex; align-items: center; gap: 10px;">
-              <span style="font-size: 0.85rem; background-color: #f0fdf4; color: #166534; padding: 6px 12px; border-radius: 6px; font-weight: bold; border: 1px solid #bbf7d0;">
-                {prodi.jenjang}
+
+      {
+        programStudi.map((prodi) => (
+          <div style="padding: 32px; border: 1px solid #e2e8f0; border-radius: 16px; background-color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; flex-wrap: wrap; gap: 12px;">
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <span style="font-size: 0.85rem; background-color: #f0fdf4; color: #166534; padding: 6px 12px; border-radius: 6px; font-weight: bold; border: 1px solid #bbf7d0;">
+                  {prodi.jenjang}
+                </span>
+                <h3 style="margin: 0; font-size: 1.4rem; color: #0f172a; font-weight: bold; letter-spacing: -0.3px;">
+                  {prodi.nama}
+                </h3>
+              </div>
+              <span style="font-size: 0.8rem; background-color: #f0fdf4; color: #16a34a; padding: 4px 12px; border-radius: 9999px; font-weight: bold; border: 1px solid #bbf7d0;">
+                🛡️ {prodi.akreditasi}
               </span>
-              <h3 style="margin: 0; font-size: 1.4rem; color: #0f172a; font-weight: bold;">
-                {prodi.nama}
-              </h3>
             </div>
-            <span style="font-size: 0.8rem; background-color: #e0e7ff; color: #4f46e5; padding: 4px 10px; border-radius: 9999px; font-weight: bold;">
-              {prodi.akreditasi}
-            </span>
+
+            <p style="margin: 0 0 16px 0; font-size: 0.95rem; color: #4f46e5; font-weight: 700;">
+              💼 Gelar Kelulusan: {prodi.gelar}
+            </p>
+
+            <p style="margin: 0; color: #475569; line-height: 1.7; font-size: 0.98rem; font-weight: 400;">
+              {prodi.deskripsi}
+            </p>
           </div>
-          
-          <p style="margin: 0 0 15px 0; font-size: 0.95rem; color: #4f46e5; font-weight: bold;">
-            💼 Gelar Kelulusan: {prodi.gelar}
-          </p>
-          
-          <p style="margin: 0; color: #475569; line-height: 1.6; font-size: 0.95rem;">
-            {prodi.deskripsi}
-          </p>
-        </div>
-      ))}
+        ))
+      }
     </section>
 
-    <!-- BAGIAN 2: KALENDER AKADEMIK (BAGIAN BAWAH) -->
-    <section style="padding: 25px; border: 1px solid #e5e7eb; border-radius: 12px; background-color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);">
-      
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 10px;">
-        <h2 style="font-size: 1.6rem; color: #4f46e5; margin: 0;">
-          📅 Kalender Akademik Semester Ganjil
+    <!-- BAGIAN 2: KALENDER AKADEMIK (Dipisah Judulnya dari Dalam Kotak untuk Keseragaman Desain) -->
+    <section style="margin: 0;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; padding: 0 5px;">
+        <h2 style="font-size: 1.4rem; color: #0f172a; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 10px;">
+          <span>📅</span> Kalender Akademik Semester Ganjil
         </h2>
-        <a href="#" style="text-decoration: none; background-color: #4f46e5; color: white; padding: 8px 14px; border-radius: 6px; font-weight: bold; font-size: 0.85rem; box-shadow: 0 2px 4px rgba(79,70,229,0.2);">
+        <a
+          href="#"
+          style="text-decoration: none; background-color: #4f46e5; color: white; padding: 10px 16px; border-radius: 8px; font-weight: bold; font-size: 0.85rem; box-shadow: 0 4px 6px rgba(79,70,229,0.15); transition: background-color 0.2s;"
+        >
           📥 Unduh PDF Kalender
         </a>
       </div>
 
-      <div style="overflow-x: auto;">
-        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.95rem;">
+      <!-- Kotak Kalender yang Seragam dengan Kotak Program Studi -->
+      <div style="padding: 24px; border: 1px solid #e2e8f0; border-radius: 16px; background-color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); overflow-x: auto;">
+        <table
+          style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.95rem;"
+        >
           <thead>
             <tr style="background-color: #f8fafc; border-bottom: 2px solid #e2e8f0;">
-              <th style="padding: 12px 15px; color: #334155; font-weight: 600;">Nama Kegiatan Akademik</th>
-              <th style="padding: 12px 15px; color: #334155; font-weight: 600;">Pelaksanaan Tanggal</th>
-              <th style="padding: 12px 15px; color: #334155; font-weight: 600; text-align: center;">Status</th>
+              <!-- Distribusi Lebar Kolom Proposional (50% - 30% - 20%) -->
+              <th style="padding: 14px 16px; color: #334155; font-weight: 700; width: 50%;"
+                >Nama Kegiatan Akademik</th
+              >
+              <th style="padding: 14px 16px; color: #334155; font-weight: 700; width: 30%;"
+                >Pelaksanaan Tanggal</th
+              >
+              <th style="padding: 14px 16px; color: #334155; font-weight: 700; text-align: center; width: 20%;"
+                >Status</th
+              >
             </tr>
           </thead>
           <tbody>
-            {kalenderAkademik.map((agenda) => (
-              <tr style="border-bottom: 1px solid #f1f5f9;">
-                <td style="padding: 14px 15px; color: #0f172a; font-weight: 500;">{agenda.kegiatan}</td>
-                <td style="padding: 14px 15px; color: #475569;">{agenda.tanggal}</td>
-                <td style="padding: 14px 15px; text-align: center;">
-                  <span style={`
-                    font-size: 0.75rem; 
-                    font-weight: bold; 
-                    padding: 4px 10px; 
-                    border-radius: 9999px;
-                    background-color: ${agenda.status === 'Selesai' ? '#f1f5f9' : agenda.status === 'Berjalan' ? '#dcfce7' : '#fef9c3'};
-                    color: ${agenda.status === 'Selesai' ? '#64748b' : agenda.status === 'Berjalan' ? '#166534' : '#854d0e'};
-                  `}>
-                    {agenda.status}
-                  </span>
-                </td>
-              </tr>
-            ))}
+            {
+              kalenderAkademik.map((agenda) => (
+                <tr style="border-bottom: 1px solid #f1f5f9;">
+                  <td style="padding: 16px; color: #0f172a; font-weight: 500; line-height: 1.5;">
+                    {agenda.kegiatan}
+                  </td>
+                  <td style="padding: 16px; color: #475569; font-weight: 400;">{agenda.tanggal}</td>
+                  <td style="padding: 16px; text-align: center;">
+                    <span
+                      style={`
+                        font-size: 0.75rem; 
+                        font-weight: 700; 
+                        padding: 6px 12px; 
+                        border-radius: 9999px;
+                        display: inline-block;
+                        border: 1px solid ${agenda.status === 'Selesai' ? '#e2e8f0' : agenda.status === 'Berjalan' ? '#bbf7d0' : '#fef08a'};
+                        background-color: ${agenda.status === 'Selesai' ? '#f1f5f9' : agenda.status === 'Berjalan' ? '#dcfce7' : '#fef9c3'};
+                        color: ${agenda.status === 'Selesai' ? '#64748b' : agenda.status === 'Berjalan' ? '#166534' : '#854d0e'};
+                      `}
+                    >
+                      {agenda.status}
+                    </span>
+                  </td>
+                </tr>
+              ))
+            }
           </tbody>
         </table>
       </div>
-
     </section>
-
   </main>
 </Layout>

@@ -1,0 +1,297 @@
+---
+// src/pages/admin.astro - PART 1: COMPLETE CMS DATA PIPELINE
+import Layout from '../../layouts/Layout.astro';
+import { env } from 'cloudflare:workers';
+
+export const prerender = false;
+const { request } = Astro;
+
+let statusPesan = "";
+let tipePesan = ""; 
+
+const db = env.database_campuses || env.database_kampus;
+
+// ========================================================
+// 🔐 SKRIP SATPAM: SELIPKAN DI ATAS FORM ACTIONS
+// ========================================================
+const tokenSesi = Astro.cookies.get("admin_session")?.value;
+const sessionKV = env.SESSION;
+let adminTervalidasi = false;
+
+if (tokenSesi && sessionKV) {
+  const dataSesi = await sessionKV.get(tokenSesi);
+  if (dataSesi) {
+    adminTervalidasi = true;
+  }
+}
+
+if (!adminTervalidasi) {
+  return Astro.redirect("/admin");
+}
+// ========================================================
+
+
+// FORM ACTIONS HANDLER
+if (request.method === 'POST') {
+  try {
+    if (!db) throw new Error("Database binding configuration not found.");
+    const formData = await request.formData();
+    const aksi = formData.get('aksi_tipe');
+
+    if (aksi === 'tambah_pengumuman') {
+      const judul = formData.get('judul_pengumuman') as string;
+      const tipe = formData.get('tipe_pengumuman') as string;
+      await db.prepare("INSERT INTO daftar_pengumuman (judul, tanggal, tipe) VALUES (?, '06 Juni 2026', ?)")
+        .bind(judul, tipe).run();
+      statusPesan = "✅ New Announcement published successfully!";
+      tipePesan = "sukses";
+    }
+    if (aksi === 'hapus_pengumuman') {
+      const idHapus = formData.get('id_pengumuman');
+      await db.prepare("DELETE FROM daftar_pengumuman WHERE id = ?").bind(idHapus).run();
+      statusPesan = `🗑️ Announcement record #${idHapus} deleted successfully!`;
+      tipePesan = "sukses";
+    }
+    if (aksi === 'tambah_unduhan') {
+      const nama = formData.get('nama_file') as string;
+      const kat = formData.get('kategori_file') as string;
+      const fmt = formData.get('format_file') as string;
+      const size = formData.get('ukuran_file') as string;
+      const url = formData.get('url_file') as string;
+      await db.prepare("INSERT INTO daftar_unduhan (nama, kategori, format, ukuran, download_url) VALUES (?, ?, ?, ?, ?)")
+        .bind(nama, kat, fmt, size, url).run();
+      statusPesan = "✅ New Document asset added to download centre!";
+      tipePesan = "sukses";
+    }
+    if (aksi === 'hapus_unduhan') {
+      const idHapusFile = formData.get('id_unduhan');
+      await db.prepare("DELETE FROM daftar_unduhan WHERE id = ?").bind(idHapusFile).run();
+      statusPesan = `🗑️ Document asset record #${idHapusFile} removed from D1!`;
+      tipePesan = "sukses";
+    }
+    if (aksi === 'tambah_jurnal') {
+      const jdl = formData.get('j_judul') as string;
+      const pnl = formData.get('j_penulis') as string;
+      const volume = formData.get('j_vol') as string;
+      const stts = formData.get('j_status') as string;
+      const link = formData.get('j_url') as string;
+      await db.prepare("INSERT INTO daftar_jurnal (judul, penulis, vol, status, pdf_url) VALUES (?, ?, ?, ?, ?)")
+        .bind(jdl, pnl, volume, stts, link).run();
+      statusPesan = "✅ Research journal record indexed to university database!";
+      tipePesan = "sukses";
+    }
+    if (aksi === 'hapus_jurnal') {
+      const idHapusJurnal = formData.get('id_jurnal');
+      await db.prepare("DELETE FROM daftar_jurnal WHERE id = ?").bind(idHapusJurnal).run();
+      statusPesan = `🗑️ Journal index entry #${idHapusJurnal} deleted successfully!`;
+      tipePesan = "sukses";
+    }
+  } catch (error: any) {
+    statusPesan = `❌ Database Action Failed: ${error.message}`;
+    tipePesan = "gagal";
+  }
+}
+
+let pengumumanRows: any[] = [];
+let unduhanRows: any[] = [];
+let jurnalRows: any[] = [];
+
+// 2. DYNAMIC READ FETCHES - WRAPPED SAFELY IN A TRY/CATCH
+// Inside src/pages/admin.astro - Remove the "let" keywords on these three lines
+if (db) {
+  try {
+    const fetchP = await db.prepare("SELECT * FROM daftar_pengumuman ORDER BY id DESC").all();
+    pengumumanRows = fetchP.results || [];
+    
+    const fetchU = await db.prepare("SELECT * FROM daftar_unduhan ORDER BY id DESC").all();
+    unduhanRows = fetchU.results || [];
+    
+    const fetchJ = await db.prepare("SELECT * FROM daftar_jurnal ORDER BY id DESC").all();
+    jurnalRows = fetchJ.results || [];
+  } catch (err: any) {
+    console.error("Gagal membaca baris database:", err.message);
+    pengumumanRows = [];
+    unduhanRows = [];
+    jurnalRows = [];
+  }
+}
+---
+
+<Layout title="Internal Admin Portal - STIT YA'MAL">
+  <main style="padding: 40px 20px; font-family: sans-serif; max-width: 1000px; margin: 0 auto; display: flex; flex-direction: column; gap: 40px;">
+    
+    <div style="text-align: center; margin-bottom: 10px;">
+      <h1 style="font-size: 2.2rem; color: #1e293b; font-weight: 800; margin: 0 0 6px 0;">Internal Admin Portal</h1>
+      <p style="color: #64748b; font-size: 0.95rem; margin: 0;">Safe Local Sandbox Workspace Environment. Manage your rows in real-time.</p>
+    </div>
+
+    {statusPesan && (
+      <div style={`padding: 14px 18px; border-radius: 10px; font-weight: bold; font-size: 0.9rem; border: 1px solid;
+        background-color: ${tipePesan === 'sukses' ? '#f0fdf4' : '#fff1f2'};
+        color: ${tipePesan === 'sukses' ? '#166534' : '#b91c1c'};
+        border-color: ${tipePesan === 'sukses' ? '#bbf7d0' : '#fecdd3'};`}>
+        {statusPesan}
+      </div>
+    )}
+
+        <!-- ==================== PART 2-A: THREE COMPREHENSIVE SUBMISSION FORMS ==================== -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px;">
+      
+      <!-- CARD A: ANNOUNCEMENTS PUBLISHER -->
+      <div style="padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.01);">
+        <h3 style="margin: 0 0 16px 0; color: #0f172a; font-size: 1.1rem; font-weight: 700;">📢 Broadcast Announcement</h3>
+        <form method="POST" style="display: flex; flex-direction: column; gap: 12px;">
+          <input type="hidden" name="aksi_tipe" value="tambah_pengumuman" />
+          <input type="text" name="judul_pengumuman" placeholder="Headline text..." required style="padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem;" />
+          <select name="tipe_pengumuman" style="padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem; background-color: #fff;">
+            <option value="Akademik">Akademik</option>
+            <option value="Pengumuman">Pengumuman</option>
+            <option value="Beasiswa">Beasiswa</option>
+          </select>
+          <button type="submit" style="padding: 10px; background-color: #10b981; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">Publish Headline</button>
+        </form>
+      </div>
+
+      <!-- CARD B: FILE REGISTRATION CENTER -->
+      <div style="padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);">
+        <h3 style="margin: 0 0 16px 0; color: #0f172a; font-size: 1.1rem; font-weight: 700;">📁 Register Download Asset</h3>
+        <form method="POST" style="display: flex; flex-direction: column; gap: 12px;">
+          <input type="hidden" name="aksi_tipe" value="tambah_unduhan" />
+          <input type="text" name="nama_file" placeholder="File Name (e.g. Formulir Skripsi)" required style="padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem;" />
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <select name="kategori_file" style="padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem; background-color: #fff;">
+              <option value="Akademik">Akademik</option>
+              <option value="Skripsi">Skripsi</option>
+              <option value="Panduan">Panduan</option>
+              <option value="Beasiswa">Beasiswa</option>
+            </select>
+            <input type="text" name="format_file" placeholder="Format (PDF, DOCX)" required style="padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem;" />
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 10px;">
+            <input type="text" name="ukuran_file" placeholder="Size (e.g. 1.2 MB)" required style="padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem;" />
+            <input type="text" name="url_file" placeholder="URL Path (e.g. /files/doc.pdf)" required style="padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem;" />
+          </div>
+          <button type="submit" style="padding: 10px; background-color: #4f46e5; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">Register Asset Link</button>
+        </form>
+      </div>
+
+      <!-- CARD C: E-JOURNAL RESEARCH ARCHIVER -->
+      <div style="padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);">
+        <h3 style="margin: 0 0 16px 0; color: #0f172a; font-size: 1.1rem; font-weight: 700;">📖 Index Academic E-Journal</h3>
+        <form method="POST" style="display: flex; flex-direction: column; gap: 12px;">
+          <input type="hidden" name="aksi_tipe" value="tambah_jurnal" />
+          <input type="text" name="j_judul" placeholder="Full Research Article Title..." required style="padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem;" />
+          <input type="text" name="j_penulis" placeholder="Author Name (e.g. Dr. Ahmad Fauzi)" required style="padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem;" />
+          <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 10px;">
+            <input type="text" name="j_vol" placeholder="Volume Specification Name..." required style="padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem;" />
+            <input type="text" name="j_status" placeholder="Score Rating (e.g. Sinta 4)" required style="padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem;" />
+          </div>
+          <input type="text" name="j_url" placeholder="Direct OJS Full-Text Document Link..." required style="padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem;" />
+          <button type="submit" style="padding: 10px; background-color: #0d9488; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">Index Journal Document</button>
+        </form>
+      </div>
+
+    </div>
+
+    <!-- ==================== PART 2-B: DATABASES REAL-TIME VIEWS TABLES ==================== -->
+    
+    <!-- TABLE 1: ANNOUNCEMENTS MANAGEMENT -->
+    <div style="padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff; overflow-x: auto;">
+      <h3 style="margin: 0 0 16px 0; color: #0f172a; font-size: 1.1rem; font-weight: 700;">⚔️ Manage Announcements Data</h3>
+      <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem; min-width: 500px;">
+        <thead>
+          <tr style="border-bottom: 2px solid #e2e8f0; background-color: #f8fafc;">
+            <th style="padding: 10px;">Title</th>
+            <th style="padding: 10px; width: 120px;">Category</th>
+            <th style="padding: 10px; text-align: center; width: 80px;">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {pengumumanRows.map((row) => (
+            <tr style="border-bottom: 1px solid #f1f5f9;">
+              <td style="padding: 12px; font-weight: 600; color: #1e293b; line-height: 1.4;">{row.judul}</td>
+              <td style="padding: 12px; color: #64748b;"><span style="background-color:#f1f5f9; padding:2px 6px; border-radius:4px; font-size:0.75rem; font-weight:600;">{row.tipe}</span></td>
+              <td style="padding: 12px; text-align: center;">
+                <form method="POST" style="margin: 0;">
+                  <input type="hidden" name="aksi_tipe" value="hapus_pengumuman" />
+                  <input type="hidden" name="id_pengumuman" value={row.id} />
+                  <button type="submit" style="padding: 4px 10px; background-color: #fff1f2; color: #e11d48; border: 1px solid #fecdd3; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 0.8rem;">Delete</button>
+                </form>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- TABLE 2: FILE CENTER MANAGEMENT -->
+    <div style="padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff; overflow-x: auto;">
+      <h3 style="margin: 0 0 16px 0; color: #0f172a; font-size: 1.1rem; font-weight: 700;">⚔️ Manage Downloadable Documents Assets</h3>
+      <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem; min-width: 600px;">
+        <thead>
+          <tr style="border-bottom: 2px solid #e2e8f0; background-color: #f8fafc;">
+            <th style="padding: 10px;">Document File Name</th>
+            <th style="padding: 10px; width: 120px;">Category</th>
+            <th style="padding: 10px; text-align: center; width: 140px;">Format / Size</th>
+            <th style="padding: 10px; text-align: center; width: 80px;">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {unduhanRows.map((file) => (
+            <tr style="border-bottom: 1px solid #f1f5f9;">
+              <td style="padding: 12px; font-weight: 600; color: #1e293b; line-height: 1.4;">{file.nama}</td>
+              <td style="padding: 12px; color: #64748b;"><span style="background-color:#f1f5f9; padding:2px 6px; border-radius:4px; font-size:0.75rem; font-weight:600;">📁 {file.kategori}</span></td>
+              <td style="padding: 12px; text-align: center; color: #475569;"><strong style="color:#0284c7;">{file.format}</strong> ({file.ukuran})</td>
+              <td style="padding: 12px; text-align: center;">
+                <form method="POST" style="margin: 0;">
+                  <input type="hidden" name="aksi_tipe" value="hapus_unduhan" />
+                  <input type="hidden" name="id_unduhan" value={file.id} />
+                  <button type="submit" style="padding: 4px 10px; background-color: #fff1f2; color: #e11d48; border: 1px solid #fecdd3; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 0.8rem;">Delete</button>
+                </form>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- TABLE 3: LIVE JOURNAL INDEX RECORDS MANAGEMENT -->
+    <div style="padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff; overflow-x: auto;">
+      <h3 style="margin: 0 0 16px 0; color: #0f172a; font-size: 1.1rem; font-weight: 700;">⚔️ Manage E-Journal Index Archives</h3>
+      <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem; min-width: 600px;">
+        <thead>
+          <tr style="border-bottom: 2px solid #e2e8f0; background-color: #f8fafc;">
+            <th style="padding: 10px;">Research Paper Title & Metadata</th>
+            <th style="padding: 10px; width: 140px;">Rank Score Status</th>
+            <th style="padding: 10px; text-align: center; width: 80px;">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {jurnalRows.map((journal) => (
+            <tr style="border-bottom: 1px solid #f1f5f9;">
+              <td style="padding: 16px 12px; line-height: 1.5;">
+                <div style="font-weight: 700; color: #0f172a; margin-bottom: 4px;">{journal.judul}</div>
+                <div style="font-size: 0.8rem; color: #475569;">✍️ Author: <strong>{journal.penulis}</strong></div>
+                <div style="font-size: 0.78rem; color: #0d9488; font-style: italic; margin-top: 2px;">📖 {journal.vol}</div>
+              </td>
+              <td style="padding: 16px 12px; vertical-align: middle;">
+                <span style="background-color: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase;">
+                  🛡️ {journal.status}
+                </span>
+              </td>
+              <td style="padding: 16px 12px; text-align: center; vertical-align: middle;">
+                <form method="POST" style="margin: 0;">
+                  <input type="hidden" name="aksi_tipe" value="hapus_jurnal" />
+                  <input type="hidden" name="id_jurnal" value={journal.id} />
+                  <button type="submit" style="padding: 4px 10px; background-color: #fff1f2; color: #e11d48; border: 1px solid #fecdd3; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 0.8rem;">Delete</button>
+                </form>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+
+  </main>
+</Layout>
+

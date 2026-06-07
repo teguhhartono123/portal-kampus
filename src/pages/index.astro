@@ -1,98 +1,200 @@
 ---
+// src/pages/index.astro
 import Layout from '../layouts/Layout.astro';
+import { env } from 'cloudflare:workers';
 
 interface InfoKampus {
   id: number;
   judul: string;
   tanggal: string;
   tipe: string;
+  isi: string;
 }
 
-// Menarik data dari API lokal pengumuman
-const response = await fetch('http://localhost:4321/api/pengumuman');
-const daftarPengumuman: InfoKampus[] = await response.json();
+// 1. SETUP PAGINATION VARIABLES
+const ITEMS_PER_PAGE = 3; 
+const url = new URL(Astro.request.url);
+const currentPage = parseInt(url.searchParams.get('page') || '1', 10);
+const offset = (currentPage - 1) * ITEMS_PER_PAGE;
 
-// Data Keunggulan Kampus untuk E-Brosur
+let daftarPengumuman: InfoKampus[] = [];
+let totalPages = 1;
+let pesanError = "";
+
+try {
+  const db = env.database_campuses || env.database_kampus;
+
+  if (!db) {
+    throw new Error("Database connection 'database_kampus' not found.");
+  }
+
+  // 2. GET TOTAL COUNT FOR PAGES
+  const countResult = await db.prepare("SELECT COUNT(*) as total FROM daftar_pengumuman").first();
+  const totalItems = (countResult?.total as number) || 0;
+  totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+
+  // 3. EXECUTE TARGETED SQL QUERY
+  const queryResult = await db.prepare(
+    "SELECT * FROM daftar_pengumuman ORDER BY id DESC LIMIT ? OFFSET ?"
+  ).bind(ITEMS_PER_PAGE, offset).all();
+  
+  daftarPengumuman = queryResult.results as unknown as InfoKampus[];
+
+} catch (error: any) {
+  pesanError = `Gagal memuat data: ${error.message}`;
+  console.error(pesanError);
+  
+  daftarPengumuman = [
+    { id: 1, judul: "Pendaftaran Mahasiswa Baru STIT YA'MAL 2026/2027 Telah Dibuka!", tanggal: "05 Juni 2026", tipe: "Akademik", isi: "Silakan hubungi bagian sekretariat kampus resmi." }
+  ];
+}
+
 const keunggulan = [
-  "Terakreditasi Resmi BAN-PT & LAMDIK",
-  "Moda Pembelajaran Hybrid (Fleksibel)",
-  "Dosen Berkualifikasi S-2 & S-3",
-  "Biaya Kuliah Dapat Diangsur",
-  "Fasilitas Gedung Milik Sendiri"
+  'Terakreditasi Resmi BAN-PT & LAMDIK',
+  'Moda Pembelajaran Hybrid (Flexible)',
+  'Dosen Berkualifikasi S-2 & S-3',
+  'Biaya Kuliah Dapat Diangsur',
+  'Fasilitas Gedung Milik Sendiri',
 ];
 ---
 
 <Layout title="Portal Resmi - STIT YA'MAL Tangerang">
-	<main style="padding: 40px 20px; max-width: 1100px; margin: 0 auto; color: #334155;">
-		
-		<!-- BAGIAN ATAS: HERO SAMBUTAN RINGKAS (ALA PORTAL BINUS) -->
-		<section style="text-align: left; margin-bottom: 40px; border-bottom: 1px solid #e2e8f0; padding-bottom: 30px;">
-	
-			<h1 style="font-size: 2.6rem; margin: 0 0 10px 0; color: #1e293b; font-weight: 800; letter-spacing: -0.5px; text-align: center;">
-				Welcome to STIT YA'MAL Tangerang
-			</h1>
-			<p  style="color: #64748b; margin: 0; font-size: 1.1rem; font-weight: 400; text-align: center">
-				Layanan sistem informasi akademik terpadu Sekolah Tinggi Ilmu Tarbiyah (STIT) YA'MAL Tangerang.
-			</p>
-		</section>
+  <main style="padding: 40px 20px; font-family: sans-serif; max-width: 1100px; margin: 0 auto;">
+    
+    <!-- HEADER SECTION -->
+    <div style="text-align: left; margin: 20px 0 40px 0; padding: 0 10px;">
+      <h1 style="font-size: 2.6rem; font-weight: 800; color: #0f172a; margin-bottom: 8px; letter-spacing: -0.5px;">
+        Selamat Datang di Kampus STIT YA'MAL Tangerang
+      </h1>
+      <p style="color: #64748b; font-size: 1.15rem; line-height: 1.5; font-weight: 400;">
+        Sistem Informasi Akademik Terpadu Sekolah Tinggi Ilmu Tarbiyah (STIT) YA'MAL Tangerang.
+      </p>
+    </div>
 
-		<!-- BAGIAN BAWAH: STRUKTUR DUA KOLOM (KIRI & KANAN) -->
-		<div style="display: flex; gap: 30px; flex-wrap: wrap;">
-			
-			<!-- KOLOM KIRI: PENGUMUMAN & ARTIKEL TERBARU (60% LEBAR) -->
-			<div style="flex: 1; min-width: 320px;">
-				<h2 style="font-size: 1.4rem; margin-top: 0; margin-bottom: 20px; color: #1e293b; font-weight: 700; display: flex; align-items: center; gap: 8px;">
-					📢 Pengumuman Terbaru
-				</h2>
-				
-				<div style="display: flex; flex-direction: column; gap: 15px;">
-					{daftarPengumuman.map((artikel) => (
-						<div style="padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff; box-shadow: 0 2px 4px rgba(0,0,0,0.01);">
-							<span style="font-size: 0.75rem; color: #0f766e; background-color: #ccfbf1; padding: 4px 8px; border-radius: 6px; font-weight: bold; border: 1px solid #99f6e4; text-transform: uppercase; display: inline-block; margin-bottom: 8px;">
-								{artikel.tipe}
-							</span>
-							<h3 style="margin: 0 0 6px 0; font-size: 1.15rem; color: #1e293b; font-weight: 700; line-height: 1.4;">
-								{artikel.judul}
-							</h3>
-							<p style="margin: 0; font-size: 0.85rem; color: #64748b;">
-								Diterbitkan: {artikel.tanggal}
-							</p>
-						</div>
-					))}
-				</div>
-			</div>
+    <!-- MAIN TWO-COLUMN CONTENT GRID -->
+    <div style="display: flex; gap: 30px; flex-wrap: wrap; margin-bottom: 56px;">
+      
+      <!-- LEFT COLUMN: ANNOUNCEMENTS & PAGINATION CONTROLS -->
+      <div style="flex: 1; min-width: 320px; display: flex; flex-direction: column; gap: 24px;">
+        
+        <h2 style="font-size: 1.4rem; margin-top: 0; margin-bottom: 0; color: #1e293b; font-weight: 700;">
+          📢 Pengumuman Terbaru
+        </h2>
+        
+        <!-- DATA LAYOUT LIST -->
+        <div style="display: flex; flex-direction: column; gap: 15px;">
+          {daftarPengumuman.map((artikel) => (
+            <div style="padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff; box-shadow: 0 2px 4px rgba(0,0,0,0.01);">
+              <span style="font-size: 0.75rem; color: #0f766e; background-color: #ccfbf1; padding: 4px 8px; border-radius: 6px; font-weight: bold; border: 1px solid #99f6e4; text-transform: uppercase; display: inline-block; margin-bottom: 8px;">
+                {artikel.tipe}
+              </span>
+              
+              <a href={`/baca?id=${artikel.id}`} style="text-decoration: none; display: block;">
+                <h3 style="margin: 0 0 6px 0; font-size: 1.15rem; color: #1e293b; font-weight: 700; line-height: 1.4; transition: color 0.15s;" onmouseover="this.style.color='#0d9488'" onmouseout="this.style.color='#1e293b'">
+                  {artikel.judul} ➔
+                </h3>
+              </a>
 
-			<!-- KOLOM KANAN: E-BROSUR INTERAKTIF PMB (40% LEBAR) -->
-			<div style="width: 380px; min-width: 300px;">
-				<div style="background-color: #f8fafc; border: 2px dashed #0d9488; padding: 25px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.01); position: sticky; top: 100px;">
-					<span style="font-size: 0.75rem; background-color: #0d9488; color: white; padding: 4px 10px; border-radius: 9999px; font-weight: bold; display: inline-block; margin-bottom: 12px; letter-spacing: 0.5px;">
-						ADMISSIONS 2026/2027
-					</span>
-					
-					<h2 style="font-size: 1.3rem; margin-top: 0; margin-bottom: 8px; color: #1e293b; font-weight: 800;">
-						E-Brosur PMB Online
-					</h2>
-					<p style="color: #64748b; font-size: 0.85rem; line-height: 1.5; margin-bottom: 20px;">
-						Unduh brosur digital resmi dan pelajari keunggulan program studi S1 Pendidikan Agama Islam (PAI).
-					</p>
+              <!-- PREVIEW SNIPPET DESCRIPTION -->
+              <p style="margin: 0 0 12px 0; font-size: 0.92rem; color: #475569; line-height: 1.5;">
+                {artikel.isi ? (artikel.isi.length > 120 ? `${artikel.isi.substring(0, 120)}...` : artikel.isi) : "Silakan klik judul untuk membaca rincian lengkap pengumuman ini."}
+              </p>
 
-					<!-- List Keunggulan Ringkas dari Brosur -->
-					<div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 25px;">
-						{keunggulan.map((item) => (
-							<div style="display: flex; align-items: center; gap: 8px; font-size: 0.88rem; color: #334155; font-weight: 500;">
-								<span style="color: #0d9488; font-weight: bold;">✓</span>
-								<span>{item}</span>
-							</div>
-						))}
-					</div>
+              <p style="margin: 0; font-size: 0.85rem; color: #64748b;">
+                Diterbitkan: {artikel.tanggal}
+              </p>
+            </div>
+          ))}
+        </div>
 
-					<!-- Tombol Aksi Unduh E-Brosur -->
-					<a href="#" style="text-decoration: none; background-color: #0d9488; color: white; padding: 10px 16px; border-radius: 8px; font-weight: bold; font-size: 0.9rem; text-align: center; display: block; box-shadow: 0 4px 6px rgba(13,148,136,0.15);">
-						📥 Download Digital Brochure
-					</a>
-				</div>
-			</div>
+        <!-- 🔢 INTERACTIVE PAGINATION GRID CONTROL BAR -->
+        {totalPages > 1 && (
+          <div style="display: flex; align-items: center; gap: 6px; margin-top: 8px; padding-left: 4px;">
+            {Array.from({ length: totalPages }).map((_, index) => {
+              const pageNum = index + 1;
+              const isCurrent = currentPage === pageNum;
+              return (
+                <a 
+                  href={pageNum === 1 ? '/' : `/?page=${pageNum}`}
+                  style={`text-decoration: none; font-size: 0.85rem; min-width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-weight: 700; transition: all 0.15s;
+                    border: 1px solid ${isCurrent ? '#0f172a' : '#e2e8f0'};
+                    background-color: ${isCurrent ? '#0f172a' : '#ffffff'};
+                    color: ${isCurrent ? '#ffffff' : '#475569'};`}
+                >
+                  {pageNum}
+                </a>
+              );
+            })}
+          </div>
+        )}
 
-		</div>
-	</main>
+      </div>
+
+      <!-- RIGHT COLUMN: INTERACTIVE E-BROCHURE (40% WIDTH) -->
+      <div style="width: 380px; min-width: 300px;">
+        <div style="background-color: #f8fafc; border: 2px dashed #0d9488; padding: 25px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.01); position: sticky; top: 100px;">
+          <span style="font-size: 0.75rem; background-color: #0d9488; color: white; padding: 4px 10px; border-radius: 9999px; font-weight: bold; display: inline-block; margin-bottom: 12px; letter-spacing: 0.5px;">
+            ADMISSIONS 2026/2027
+          </span>
+          <h2 style="font-size: 1.3rem; margin-top: 0; margin-bottom: 8px; color: #1e293b; font-weight: 800;">
+            E-Brosur PMB Online
+          </h2>
+          <p style="color: #64748b; font-size: 0.85rem; line-height: 1.5; margin-bottom: 20px;">
+            Unduh brosur digital resmi dan pelajari keunggulan program studi S1 Pendidikan Agama Islam (PAI).
+          </p>
+
+          <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 25px;">
+            {keunggulan.map((item) => (
+              <div style="display: flex; align-items: center; gap: 8px; font-size: 0.88rem; color: #334155; font-weight: 500;">
+                <span style="color: #0d9488; font-weight: bold;">✓</span>
+                <span>{item}</span>
+              </div>
+            ))}
+          </div>
+
+          <a href="#" style="text-decoration: none; background-color: #0d9488; color: white; padding: 10px 16px; border-radius: 8px; font-weight: bold; font-size: 0.9rem; text-align: center; display: block; box-shadow: 0 4px 6px rgba(13,148,136,0.15);">
+            📥 Download Digital Brochure
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- 🚀 FULL-WIDTH BOTTOM COMMUNICATION PORTAL HUB (Broke free from columns) -->
+    <section style="margin-top: 56px; display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; width: 100%;">
+      
+      <!-- LEFT CONTAINER: SOCIAL CHANNELS -->
+      <div style="padding: 28px; border: 1px solid #e2e8f0; border-radius: 16px; background-color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); display: flex; flex-direction: column; gap: 20px;">
+        <div>
+          <h2 style="font-size: 1.35rem; color: #0f172a; font-weight: 800; margin: 0 0 6px 0; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px;">
+            <span>🌐</span> Media Sosial Resmi
+          </h2>
+          <p style="margin: 0; color: #64748b; font-size: 0.92rem; line-height: 1.5; font-weight: 400;">
+            Ikuti akun resmi STIT YA'MAL untuk info kegiatan, dokumentasi kampus, serta pengumuman edukatif terbaru.
+          </p>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+          <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" style="text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px; background: linear-gradient(45deg, #fdf2f8, #fff1f2); border: 1px solid #fbcfe8; border-radius: 12px; color: #db2777; font-weight: 700; font-size: 0.9rem;">📸 Instagram</a>
+          <a href="https://tiktok.com" target="_blank" rel="noopener noreferrer" style="text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px; background-color: #0f172a; border: 1px solid #1e293b; border-radius: 12px; color: #ffffff; font-weight: 700; font-size: 0.9rem;">🎵 TikTok</a>
+          <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" style="text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px; background-color: #eff6ff; border: 1px solid #bfdbfe; border-radius: 12px; color: #1d4ed8; font-weight: 700; font-size: 0.9rem;">👥 Facebook</a>
+          <a href="https://x.com" target="_blank" rel="noopener noreferrer" style="text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; color: #0f172a; font-weight: 700; font-size: 0.9rem;">🐦 X (Twitter)</a>
+        </div>
+      </div>
+<!-- RIGHT BOX: WHATSAPP HELPDESK CONVERSION PANEL -->
+      <div style="padding: 28px; border: 1px solid #bbf7d0; border-radius: 16px; background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); box-shadow: 0 4px 12px rgba(22,163,74,0.03); display: flex; flex-direction: column; gap: 20px;">
+        <div>
+          <h2 style="font-size: 1.35rem; color: #166534; font-weight: 800; margin: 0 0 6px 0; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px;">
+            <span>💬</span> Layanan Informasi PMB
+          </h2>
+          <p style="margin: 0; color: #166534; font-size: 0.92rem; line-height: 1.5; font-weight: 400; opacity: 0.9;">
+            Butuh bantuan langsung? Hubungi tim admin kami via WhatsApp untuk konsultasi pendaftaran, rincian biaya kuliah, atau syarat masuk program studi S1.
+          </p>
+        </div>
+
+        <a href="https://wa.me" target="_blank" rel="noopener noreferrer" style="text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 14px; background-color: #16a34a; border-radius: 12px; color: #ffffff; font-weight: 700; font-size: 1rem; box-shadow: 0 4px 6px rgba(22,163,74,0.15); transition: background-color 0.2s;">
+          🟢 Chat via WhatsApp Helpdesk
+        </a>
+      </div>
+	</section>
+  </main>
 </Layout>

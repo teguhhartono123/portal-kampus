@@ -1,0 +1,121 @@
+---
+// src/pages/admin/index.astro - GERBANG LOGIN ADMIN UTUH
+import Layout from '../../layouts/Layout.astro';
+import { env } from 'cloudflare:workers';
+
+// Wajib berjalan di mode Server-Side Rendering (SSR) untuk proses form & cookie
+export const prerender = false;
+
+let pesanError = "";
+
+// 1. LOGIKA BACKEND: PROSES SAAT TOMBOL SUBMIT DIKLIK
+if (Astro.request.method === "POST") {
+  try {
+    const formData = await Astro.request.formData();
+    const username = formData.get("username")?.toString();
+    const password = formData.get("password")?.toString();
+
+    // 🔐 Kredensial Resmi Admin STIT YA'MAL
+    const ADMIN_USERNAME = "admin_yamal";
+    const ADMIN_PASSWORD = "SuperSecurePassword2026!"; 
+
+    if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+      // Generate ID Sesi unik
+      const idSesi = crypto.randomUUID();
+      const sessionKV = env.SESSION;
+      
+      if (sessionKV) {
+        // Simpan sesi ke Cloudflare KV (Kedaluwarsa otomatis dalam 2 Jam)
+        await sessionKV.put(idSesi, JSON.stringify({ user: username }), { expirationTtl: 7200 });
+        
+        // Tanam Cookie HttpOnly super aman di browser admin
+        Astro.cookies.set("admin_session", idSesi, {
+          path: "/",
+          httpOnly: true,
+          secure: true,
+          sameSite: "strict",
+          maxAge: 7200
+        });
+
+        // Sukses! Alihkan admin langsung ke Dashboard CMS Utama
+        return Astro.redirect("/admin/dashboard");
+      } else {
+        throw new Error("Binding KV Namespace 'SESSION' tidak ditemukan di wrangler.jsonc!");
+      }
+    } else {
+      pesanError = "❌ Username atau Password Admin salah!";
+    }
+  } catch (error: any) {
+    pesanError = `Sistem Error: ${error.message}`;
+    console.error(error);
+  }
+}
+---
+
+<Layout title="Login Administrator - STIT YA'MAL">
+  <div style="background-color: #f8fafc; min-height: 85vh; display: flex; align-items: center; justify-content: center; padding: 20px; font-family: sans-serif;">
+    
+    <div style="background-color: #ffffff; width: 100%; max-width: 420px; padding: 40px 32px; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 24px;">
+      
+      <!-- HEADER GERBANG -->
+      <div style="text-align: center;">
+        <div style="font-size: 2.5rem; margin-bottom: 10px;">🔐</div>
+        <h2 style="font-size: 1.6rem; font-weight: 800; color: #0f172a; margin: 0 0 6px 0; letter-spacing: -0.5px;">
+          Control Center Login
+        </h2>
+        <p style="color: #64748b; font-size: 0.9rem; line-height: 1.5; margin: 0;">
+          Silakan masukkan kredensial resmi untuk mengakses sistem manajemen database STIT YA'MAL Tangerang.
+        </p>
+      </div>
+
+      <!-- NOTIFIKASI ERROR -->
+      {pesanError && (
+        <div style="padding: 12px 16px; background-color: #fff1f2; color: #b91c1c; border: 1px solid #fecdd3; border-radius: 8px; font-size: 0.88rem; font-weight: 600; text-align: center; line-height: 1.4;">
+          {pesanError}
+        </div>
+      )}
+
+      <!-- FORM LOGIN -->
+      <form method="POST" style="display: flex; flex-direction: column; gap: 16px;">
+        
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <label style="font-size: 0.85rem; font-weight: 700; color: #334155;">Username Admin:</label>
+          <input 
+            type="text" 
+            name="username" 
+            placeholder="Masukkan username..." 
+            required 
+            style="padding: 12px 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.95rem; outline: none; color: #0f172a; background-color: #f8fafc;" 
+          />
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <label style="font-size: 0.85rem; font-weight: 700; color: #334155;">Password Akun:</label>
+          <input 
+            type="password" 
+            name="password" 
+            placeholder="••••••••" 
+            required 
+            style="padding: 12px 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.95rem; outline: none; color: #0f172a; background-color: #f8fafc;" 
+          />
+        </div>
+
+        <button 
+          type="submit" 
+          style="margin-top: 8px; padding: 14px; background-color: #0f172a; color: #ffffff; border: none; border-radius: 8px; font-size: 0.95rem; font-weight: 700; cursor: pointer; box-shadow: 0 4px 6px -1px rgba(15,23,42,0.1);"
+        >
+          Masuk ke Dashboard CMS
+        </button>
+
+      </form>
+
+      <!-- LINK KEMBALI -->
+      <div style="text-align: center; margin-top: 4px;">
+        <a href="/" style="text-decoration: none; color: #64748b; font-size: 0.85rem; font-weight: 600;">
+          ← Kembali ke Beranda Utama
+        </a>
+      </div>
+
+    </div>
+  </div>
+</Layout>

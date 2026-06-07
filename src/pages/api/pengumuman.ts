@@ -14,30 +14,30 @@ export const GET: APIRoute = async () => {
   const dataPengumuman: InfoKampus[] = [
     {
       id: 1,
-      judul: "Surat Edaran Pencetakan Ijazah",
-      tanggal: "29 Des 2018",
-      tipe: "akademik"
+      judul: 'Surat Edaran Pencetakan Ijazah',
+      tanggal: '29 Des 2018',
+      tipe: 'akademik',
     },
     {
       id: 2,
-      judul: "Jadwal Ujian Akhir Semester (UAS) Ganjil",
-      tanggal: "17 Des 2018",
-      tipe: "akademik"
+      judul: 'Jadwal Ujian Akhir Semester (UAS) Ganjil',
+      tanggal: '17 Des 2018',
+      tipe: 'akademik',
     },
     {
       id: 3,
-      judul: "Modul Ruang Laboratorium Komputer Baru",
-      tanggal: "05 Jun 2026",
-      tipe: "fasilitas"
-    }
+      judul: 'Modul Ruang Laboratorium Komputer Baru',
+      tanggal: '05 Jun 2026',
+      tipe: 'fasilitas',
+    },
   ];
 
   // Mengembalikan respon berupa data JSON bersih agar bisa dibaca oleh Frontend
   return new Response(JSON.stringify(dataPengumuman), {
     status: 200,
     headers: {
-      "Content-Type": "application/json",
-      "Access-Control-Allow-Origin": "*" // Biar aman dari error CORS
-    }
+      'Content-Type': 'application/json',
+      'Access-Control-Allow-Origin': '*', // Biar aman dari error CORS
+    },
   });
 };

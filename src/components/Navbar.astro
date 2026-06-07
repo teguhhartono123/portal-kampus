@@ -1,33 +1,123 @@
 ---
-// BACKEND: Membaca path URL halaman yang sedang dibuka saat ini
+// BACKEND: Read the current URL path to highlight active links
 const currentPath = Astro.url.pathname;
 ---
 
-<nav style="background-color: #ffffff; border-bottom: 1px solid #e5e7eb; padding: 15px 0; font-family: sans-serif; position: sticky; top: 0; z-index: 100; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+<nav style="background-color: #ffffff; border-bottom: 1px solid #e5e7eb; padding: 14px 0; font-family: sans-serif; position: sticky; top: 0; z-index: 100; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
   <div style="max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 0 20px;">
       
-        <!-- Bagian Logo Gambar & Nama Kampus -->
-    <a href="/" style="text-decoration: none; color: #111827; font-weight: bold; font-size: 1.25rem; display: flex; align-items: center; gap: 10px;">
-      <img src="/logo-kampus.png" alt="Logo STIT YA'MAL" style="width: 40px; height: 40px; object-fit: contain;" />
+    <!-- 1. LEFT SIDE: BRAND LOGO -->
+    <a href="/" style="text-decoration: none; color: #1e293b; font-weight: bold; font-size: 1.15rem; display: flex; align-items: center; gap: 10px;">
+      <img src="/logo-kampus.png" alt="Logo" style="width: 32px; height: 32px; object-fit: contain; display: block;" />
       <span style="letter-spacing: -0.5px;">Portal <span style="color: #0d9488;">STIT YA'MAL</span></span>
     </a>
 
-    <!-- Daftar Link Menu Kampus Otomatis Mengikuti Halaman Aktif -->
-    <div style="display: flex; gap: 18px; align-items: center;">
-      <a href="/" style={`text-decoration: none; font-size: 0.9rem; font-weight: ${currentPath === '/' ? '600' : '500'}; color: ${currentPath === '/' ? '#4f46e5' : '#475569'};`}>HOME</a>
-      <a href="/akreditasi" style={`text-decoration: none; font-size: 0.9rem; font-weight: ${currentPath === '/akreditasi' ? '600' : '500'}; color: ${currentPath === '/akreditasi' ? '#4f46e5' : '#475569'};`}>AKREDITASI</a>
-      <a href="/profil" style={`text-decoration: none; font-size: 0.9rem; font-weight: ${currentPath === '/profil' ? '600' : '500'}; color: ${currentPath === '/profil' ? '#4f46e5' : '#475569'};`}>PROFIL</a>
-      <a href="/akademik" style={`text-decoration: none; font-size: 0.9rem; font-weight: ${currentPath === '/akademik' ? '600' : '500'}; color: ${currentPath === '/akademik' ? '#4f46e5' : '#475569'};`}>AKADEMIK</a>
-      <a href="/fasilitas" style={`text-decoration: none; font-size: 0.9rem; font-weight: ${currentPath === '/fasilitas' ? '600' : '500'}; color: ${currentPath === '/fasilitas' ? '#4f46e5' : '#475569'};`}>FASILITAS</a>
-      <a href="/jurnal" style={`text-decoration: none; font-size: 0.9rem; font-weight: ${currentPath === '/jurnal' ? '600' : '500'}; color: ${currentPath === '/jurnal' ? '#4f46e5' : '#475569'};`}>JURNAL</a>
-      <a href="/galeri" style={`text-decoration: none; font-size: 0.9rem; font-weight: ${currentPath === '/galeri' ? '600' : '500'}; color: ${currentPath === '/galeri' ? '#4f46e5' : '#475569'};`}>GALERI FOTO</a>
-      <a href="/unduhan" style={`text-decoration: none; font-size: 0.9rem; font-weight: ${currentPath === '/unduhan' ? '600' : '500'}; color: ${currentPath === '/unduhan' ? '#4f46e5' : '#475569'};`}>UNDUHAN</a>
+    <!-- 2. CENTER-RIGHT: DESKTOP NAVIGATION MENU (Hidden on Mobile) -->
+    <div class="desktop-menu" style="display: flex; gap: 16px; align-items: center;">
+      <a href="/" style={`text-decoration: none; font-size: 0.85rem; font-weight: ${currentPath === '/' ? '700' : '600'}; color: ${currentPath === '/' ? '#4f46e5' : '#475569'};`}>HOME</a>
+      <a href="/akreditasi" style={`text-decoration: none; font-size: 0.85rem; font-weight: ${currentPath === '/akreditasi' ? '700' : '600'}; color: ${currentPath === '/akreditasi' ? '#4f46e5' : '#475569'};`}>AKREDITASI</a>
+      <a href="/profil" style={`text-decoration: none; font-size: 0.85rem; font-weight: ${currentPath === '/profil' ? '700' : '600'}; color: ${currentPath === '/profil' ? '#4f46e5' : '#475569'};`}>PROFIL</a>
+      <a href="/akademik" style={`text-decoration: none; font-size: 0.85rem; font-weight: ${currentPath === '/akademik' ? '700' : '600'}; color: ${currentPath === '/akademik' ? '#4f46e5' : '#475569'};`}>AKADEMIK</a>
+      <a href="/fasilitas" style={`text-decoration: none; font-size: 0.85rem; font-weight: ${currentPath === '/fasilitas' ? '700' : '600'}; color: ${currentPath === '/fasilitas' ? '#4f46e5' : '#475569'};`}>FASILITAS</a>
+      <a href="/jurnal" style={`text-decoration: none; font-size: 0.85rem; font-weight: ${currentPath === '/jurnal' ? '700' : '600'}; color: ${currentPath === '/jurnal' ? '#4f46e5' : '#475569'};`}>JURNAL</a>
+      <a href="/galeri" style={`text-decoration: none; font-size: 0.85rem; font-weight: ${currentPath === '/galeri' ? '700' : '600'}; color: ${currentPath === '/galeri' ? '#4f46e5' : '#475569'};`}>GALERI FOTO</a>
+      <a href="/unduhan" style={`text-decoration: none; font-size: 0.85rem; font-weight: ${currentPath === '/unduhan' ? '700' : '600'}; color: ${currentPath === '/unduhan' ? '#4f46e5' : '#475569'};`}>UNDUHAN</a>
       
-      <!-- Tombol Pendaftaran Mahasiswa Baru -->
-      <a href="#" style="text-decoration: none; background-color: #10b981; color: white; padding: 6px 14px; border-radius: 6px; font-weight: bold; font-size: 0.85rem; box-shadow: 0 2px 4px rgba(16,185,129,0.2); letter-spacing: 0.5px;">
+      <a href="#" style="text-decoration: none; background-color: #10b981; color: white; padding: 6px 14px; border-radius: 6px; font-weight: bold; font-size: 0.85rem; box-shadow: 0 2px 4px rgba(16,185,129,0.2); letter-spacing: 0.5px; margin-left: 4px;">
         PMB ONLINE
       </a>
     </div>
 
+    <!-- 3. RIGHT SIDE: HAMBURGER BUTTON (Hidden on Desktop) -->
+    <button id="tombol-menu-mobile" class="hamburger-btn" aria-label="Toggle Menu">
+      <svg xmlns="http://w3.org" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 24px; height: 24px;">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+      </svg>
+    </button>
+
+  </div>
+
+  <!-- 4. DROPDOWN BOX PANEL: MOBILE LINKS TREE -->
+  <div id="kotak-menu-mobile" class="mobile-dropdown">
+    <a href="/" style={currentPath === '/' ? 'color: #4f46e5; font-weight: bold;' : ''}>HOME</a>
+    <a href="/akreditasi" style={currentPath === '/akreditasi' ? 'color: #4f46e5; font-weight: bold;' : ''}>AKREDITASI</a>
+    <a href="/profil" style={currentPath === '/profil' ? 'color: #4f46e5; font-weight: bold;' : ''}>PROFIL</a>
+    <a href="/akademik" style={currentPath === '/akademik' ? 'color: #4f46e5; font-weight: bold;' : ''}>AKADEMIK</a>
+    <a href="/fasilitas" style={currentPath === '/fasilitas' ? 'color: #4f46e5; font-weight: bold;' : ''}>FASILITAS</a>
+    <a href="/jurnal" style={currentPath === '/jurnal' ? 'color: #4f46e5; font-weight: bold;' : ''}>JURNAL</a>
+    <a href="/galeri" style={currentPath === '/galeri' ? 'color: #4f46e5; font-weight: bold;' : ''}>GALERI FOTO</a>
+    <a href="/unduhan" style={currentPath === '/unduhan' ? 'color: #4f46e5; font-weight: bold;' : ''}>UNDUHAN</a>
+    <a href="#" style="background-color: #10b981; color: white !important; text-align: center; border-radius: 8px; margin-top: 8px; font-weight: bold; box-shadow: 0 4px 6px rgba(16,185,129,0.15);">PMB ONLINE</a>
   </div>
 </nav>
+
+<!-- CSS: Media Query breakpoints to handle styling states cleanly -->
+<style>
+  /* 🖥️ Global Desktop Setup defaults */
+  .hamburger-btn {
+    display: none;
+    background: none;
+    border: none;
+    color: #1e293b;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 6px;
+  }
+  .hamburger-btn:hover {
+    background-color: #f1f5f9;
+  }
+  .mobile-dropdown {
+    display: none;
+  }
+
+  /* 📱 Smartphone Responsive Breakpoint rules (Screens below 1024px width) */
+  @media (max-width: 1024px) {
+    .desktop-menu {
+      display: none !important; /* Hide standard spread menu row */
+    }
+    .hamburger-btn {
+      display: block !important; /* Expose custom svg menu icon */
+    }
+    .mobile-dropdown {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      background-color: #ffffff;
+      border-top: 1px solid #f1f5f9;
+      padding: 12px 20px;
+      max-height: 0; /* Starts collapsed closed */
+      overflow: hidden;
+      transition: max-height 0.3s ease-in-out, padding 0.3s ease-in-out;
+    }
+    /* Toggle active open visualization class block handles */
+    .mobile-dropdown.buka-menu {
+      display: flex !important;
+      max-height: 450px; /* Expands open smoothly down */
+      padding: 16px 20px;
+      border-bottom: 2px solid #e5e7eb;
+    }
+    .mobile-dropdown a {
+      text-decoration: none;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #334155;
+      padding: 10px 14px;
+      border-radius: 6px;
+      transition: background-color 0.15s;
+    }
+    .mobile-dropdown a:hover {
+      background-color: #f8fafc;
+      color: #4f46e5;
+    }
+  }
+</style>
+
+<!-- CLIENT SCRIPT: Interactive click event listener to drop open the drawer -->
+<script>
+  const tombolMenu = document.getElementById('tombol-menu-mobile');
+  const kotakMenu = document.getElementById('kotak-menu-mobile');
+
+  tombolMenu?.addEventListener('click', () => {
+    kotakMenu?.classList.toggle('buka-menu');
+  });
+</script>

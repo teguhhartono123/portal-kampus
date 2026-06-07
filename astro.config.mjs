@@ -1,9 +1,24 @@
-// @ts-check
 import { defineConfig } from 'astro/config';
-
 import cloudflare from '@astrojs/cloudflare';
 
-// https://astro.build/config
 export default defineConfig({
-  adapter: cloudflare()
+  // Ensure the server outputs pages dynamically on every click
+  output: 'server',
+  
+  adapter: cloudflare({
+    // Disable default page overrides to prevent routing clashes
+    runtime: { mode: 'complete' },
+    
+    // 🚀 LINK ASTRO DIRECTLY TO YOUR LOCAL WRANGLER D1 STORAGE BOX
+    platformProxy: {
+      enabled: true,
+      persistTo: '.wrangler/state/v3'
+    }
+  }),
+
+  vite: {
+    ssr: {
+      external: ['cloudflare:workers'],
+    },
+  },
 });

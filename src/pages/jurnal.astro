@@ -1,73 +1,92 @@
 ---
+// src/pages/jurnal.astro - SCRIP ATAS DINAMIS RESMI ASTRO v6
 import Layout from '../layouts/Layout.astro';
+import { env } from 'cloudflare:workers';
 
-// Simulasi daftar data jurnal ilmiah asli kampus STIT Ya'mal
-const daftarJurnal = [
-  {
-    id: 1,
-    judul: "Implementasi Manajemen Kurikulum Berbasis Nilai Islam di Era Digital",
-    penulis: "Dr. Ahmad Fauzi, M.Pd.",
-    vol: "Vol. 5 No. 1 (2025): Jurnal Pendidikan Islam YA'MAL",
-    status: "Terakreditasi Sinta 4"
-  },
-  {
-    id: 2,
-    judul: "Strategi Pengajaran Guru Pendidikan Agama Islam Berbasis Metodologi Kontemporer",
-    penulis: "Siti Rahmah, M.Pd.I.",
-    vol: "Vol. 4 No. 2 (2024): Jurnal Tarbiyah Islamiyah",
-    status: "Terakreditasi Sinta 4"
-  },
-  {
-    id: 3,
-    judul: "Analisis Pembentukan Akhlakul Karimah Mahasiswa Melalui Kegiatan Ekstrakurikuler Keagamaan",
-    penulis: "H. Supriyadi, M.A.",
-    vol: "Vol. 4 No. 1 (2024): Jurnal Tarbiyah Islamiyah",
-    status: "Review Proses"
+
+export const prerender = false;
+
+let daftarJurnal: any[] = [];
+let pesanError = "";
+
+// 🚀 GUNAKAN ENVIRONMENT BINDING RESMI SEPERTI DI DASHBOARD ADMIN
+const db = env.database_campuses || env.database_kampus;
+
+if (db) {
+  try {
+    // Ambil baris data jurnal secara live dari tangki SQL D1 lokal
+    const fetchJurnal = await db.prepare("SELECT * FROM daftar_jurnal ORDER BY id DESC").all();
+    daftarJurnal = fetchJurnal.results || [];
+  } catch (err: any) {
+    console.error("Gagal memuat database jurnal:", err.message);
+    pesanError = err.message;
   }
-];
+}
 ---
 
+
 <Layout title="Jurnal Ilmiah - STIT YA'MAL">
-  <main style="padding: 40px 20px; font-family: sans-serif; max-width: 900px; margin: 0 auto;">
+  <main style="padding: 40px 20px; font-family: sans-serif; max-width: 850px; margin: 0 auto; display: flex; flex-direction: column; gap: 36px;">
     
-    <h1 style="font-size: 2.5rem; color: #111827; margin-bottom: 10px;">
-      E-Jurnal & Publikasi Ilmiah
-    </h1>
-    <p style="color: #666; margin-bottom: 40px; line-height: 1.6; font-size: 1.05rem;">
-      Pusat portal jurnal elektronik Sekolah Tinggi Ilmu Tarbiyah (STIT) YA'MAL Tangerang. Mewadahi diseminasi hasil penelitian dosen dan mahasiswa di bidang pendidikan, keguruan, dan pemikiran Islam.
-    </p>
+    <!-- BAGIAN JUDUL UTAMA -->
+    <div style="text-align: left; padding: 0 5px;">
+      <h1 style="font-size: 2.6rem; font-weight: 800; color: #0f172a; margin-top: 0; margin-bottom: 12px; letter-spacing: -0.5px;">
+        E-Jurnal & Publikasi Ilmiah
+      </h1>
+      <p style="color: #64748b; font-size: 1.15rem; line-height: 1.6; font-weight: 400; margin: 0;">
+        Pusat portal jurnal elektronik Sekolah Tinggi Ilmu Tarbiyah (STIT) YA'MAL Tangerang. Mewadahi diseminasi hasil penelitian dosen dan mahasiswa di bidang pendidikan, keguruan, dan pemikiran Islam.
+      </p>
+    </div>
 
     <!-- LIST DAFTAR JURNAL ILMIAH -->
-    <div style="display: flex; flex-direction: column; gap: 20px;">
-      {daftarJurnal.map((jurnal) => (
-        <div style="padding: 20px; border: 1px solid #e5e7eb; border-radius: 12px; background-color: #ffffff; box-shadow: 0 2px 4px rgba(0,0,0,0.02); transition: transform 0.2s;">
-          <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 8px;">
-            <span style="font-size: 0.75rem; background-color: #e0e7ff; color: #4f46e5; padding: 4px 10px; border-radius: 9999px; font-weight: bold; text-transform: uppercase;">
-              {jurnal.status}
-            </span>
-            <span style="font-size: 0.85rem; color: #9ca3af;">
-              ID: #{jurnal.id}
-            </span>
+    <div style="display: flex; flex-direction: column; gap: 24px;">
+      {daftarJurnal.map((jurnal) => {
+        // Logika Pewarnaan Badge Status Secara Dinamis demi Kualitas UX Tinggi
+        const isSinta = jurnal.status.includes('Sinta');
+        const badgeBg = isSinta ? '#e0f2fe' : '#fef9c3';
+        const badgeColor = isSinta ? '#0369a1' : '#854d0e';
+        const badgeBorder = isSinta ? '#bae6fd' : '#fef08a';
+
+        return (
+          <div style="padding: 28px; border: 1px solid #e2e8f0; border-radius: 16px; background-color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); display: flex; flex-direction: column; gap: 14px;">
+            
+            <!-- Baris Atas: Badge Status & ID Dokumen -->
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style={`font-size: 0.75rem; background-color: ${badgeBg}; color: ${badgeColor}; border: 1px solid ${badgeBorder}; padding: 4px 12px; border-radius: 6px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;`}>
+                🛡️ {jurnal.status}
+              </span>
+              <span style="font-size: 0.85rem; color: #94a3b8; font-weight: 500;">
+                DOC ID: #{jurnal.id}
+              </span>
+            </div>
+
+            <!-- Judul Artikel Ilmiah -->
+            <h3 style="margin: 0; font-size: 1.3rem; color: #0f172a; font-weight: 800; line-height: 1.45; letter-spacing: -0.3px;">
+              {jurnal.judul}
+            </h3>
+
+            <!-- Info Metadata Penulis & Volume -->
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+              <p style="margin: 0; font-size: 0.95rem; color: #475569; font-weight: 500;">
+                <span style="color: #64748b;">✍️ Penulis:</span> <strong style="color: #0f172a; font-weight: 700;">{jurnal.penulis}</strong>
+              </p>
+              <p style="margin: 0; font-size: 0.92rem; color: #0d9488; font-weight: 600; display: flex; align-items: center; gap: 6px;">
+                <span>📖</span> {jurnal.vol}
+              </p>
+
+
+            </div>
+
+            <!-- Tombol Aksi Buka PDF Jurnal (Lebih Kontras dan Interaktif) -->
+            <div style="margin-top: 4px;">
+              <a href={jurnal.pdf_url} target="_blank" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; background-color: #0f172a; color: #ffffff; text-decoration: none; border-radius: 8px; font-size: 0.88rem; font-weight: 700; box-shadow: 0 4px 6px rgba(15,23,42,0.08);">
+                <span>📄</span> Buka Dokumen PDF (Full-Text)
+              </a>
+            </div>
+            
           </div>
-
-          <h3 style="margin: 0 0 10px 0; font-size: 1.25rem; color: #111827; font-weight: bold; line-height: 1.4;">
-            {jurnal.judul}
-          </h3>
-
-          <p style="margin: 0 0 5px 0; font-size: 0.95rem; color: #475569; font-weight: 500;">
-            ✍️ Penulis: <span style="color: #111827;">{jurnal.penulis}</span>
-          </p>
-
-          <p style="margin: 0 0 15px 0; font-size: 0.9rem; color: #64748b; font-style: italic;">
-            📖 {jurnal.vol}
-          </p>
-
-          <!-- Tombol Simulasi Buka PDF Jurnal -->
-          <a href="#" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; background-color: #f1f5f9; color: #1e293b; text-decoration: none; border-radius: 6px; font-size: 0.85rem; font-weight: bold; border: 1px solid #e2e8f0;">
-            📄 Buka Dokumen PDF (Full-Text)
-          </a>
-        </div>
-      ))}
+        );
+      })}
     </div>
 
   </main>

@@ -1,42 +1,72 @@
 ---
 import Layout from '../layouts/Layout.astro';
 
-// Simulasi data inventaris fasilitas kampus STIT YA'MAL
+// Data Fasilitas Resmi Kampus Berdasarkan Brosur STIT YA'MAL
 const daftarFasilitas = [
-  { id: 1, nama: "Gedung Utama Kampus", deskripsi: "Pusat administrasi akademik, ruang rektorat, dan aula pertemuan utama." },
-  { id: 2, nama: "Laboratorium Komputer", deskripsi: "Fasilitas komputer modern untuk praktikum digital, riset, dan ujian berbasis CAT." },
-  { id: 3, nama: "Perpustakaan Tarbiyah", deskripsi: "Koleksi lengkap kitab klasik, buku digital, jurnal ilmiah, dan ruang baca ber-AC." },
-  { id: 4, nama: "Ruang Kelas Multimedia", deskripsi: "Ruang perkuliahan yang dilengkapi proyektor LCD dan sistem audio terintegrasi." },
-  { id: 5, nama: "Masjid Al-Khairiyah Kampus", deskripsi: "Pusat kegiatan ibadah, kajian keislaman, dan pembentukan akhlakul karimah." },
-  { id: 6, nama: "Gedung Kegiatan Mahasiswa (GKM)", deskripsi: "Ruang sekretariat bersama untuk organisasi BEM, UKM, dan kreativitas mahasiswa." }
+  { 
+    id: 1, 
+    nama: "Gedung Kampus Milik Sendiri", 
+    deskripsi: "Fasilitas gedung perkuliahan resmi milik sendiri yang representatif, nyaman, dan berlokasi strategis untuk mendukung iklim akademik mandiri." 
+  },
+  { 
+    id: 2, 
+    nama: "Laboratorium Komputer", 
+    deskripsi: "Fasilitas komputer modern terintegrasi untuk kegiatan praktikum digital, riset teknologi informasi Islami, dan simulasi ujian berbasis CAT." 
+  },
+  { 
+    id: 3, 
+    nama: "Perpustakaan Tarbiyah", 
+    deskripsi: "Koleksi lengkap kitab klasik (kitab kuning), buku digital, jurnal ilmiah kependidikan, serta ruang baca tenang ber-AC untuk referensi mahasiswa." 
+  },
+  { 
+    id: 4, 
+    nama: "Ruang Kelas Multimedia", 
+    deskripsi: "Ruang kuliah interaktif yang dilengkapi dengan proyektor LCD dan sistem audio terintegrasi guna mendukung sistem perkuliahan Hybrid Learning." 
+  },
+  { 
+    id: 5, 
+    nama: "Masjid & Sarana Ibadah Kampus", 
+    deskripsi: "Pusat kegiatan ibadah, kajian keislaman, pembinaan akhlakul karimah, serta dakwah terpadu bagi seluruh civitas akademika kampus." 
+  },
+  { 
+    id: 6, 
+    nama: "Gedung Kegiatan Mahasiswa (GKM)", 
+    deskripsi: "Ruang sekretariat bersama untuk organisasi BEM, Unit Kegiatan Mahasiswa (UKM), dan pusat pengembangan kreativitas serta minat bakat mahasiswa." 
+  }
 ];
 ---
 
 <Layout title="Fasilitas Kampus - STIT YA'MAL">
-  <main style="padding: 40px 20px; font-family: sans-serif; max-width: 1000px; margin: 0 auto;">
+  <main style="padding: 40px 20px; font-family: sans-serif; max-width: 950px; margin: 0 auto; display: flex; flex-direction: column; gap: 40px;">
     
-    <h1 style="font-size: 2.5rem; color: #111827; margin-bottom: 10px;">
-      Sarana & Fasilitas Kampus
-    </h1>
-    <p style="color: #666; margin-bottom: 40px; line-height: 1.6; font-size: 1.05rem;">
-      STIT YA'MAL Tangerang menyediakan sarana prasarana modern dan memadai untuk menunjang kenyamanan mahasiswa dalam menempuh proses pembelajaran dan riset akademik.
-    </p>
+    <!-- Bagian Judul Utama (Konsisten dengan halaman lain) -->
+    <div style="text-align: left; padding: 0 5px;">
+      <h1 style="font-size: 2.6rem; font-weight: 800; color: #0f172a; margin-top: 0; margin-bottom: 12px; letter-spacing: -0.5px;">
+        Sarana & Fasilitas Kampus
+      </h1>
+      <p style="color: #64748b; font-size: 1.15rem; line-height: 1.6; font-weight: 400; margin: 0;">
+        STIT YA'MAL Tangerang menyediakan sarana prasarana mandiri yang memadai untuk menunjang kenyamanan mahasiswa dalam menempuh proses pembelajaran dan riset akademik.
+      </p>
+    </div>
 
     <!-- STRUKTUR GRID LAYOUT UNTUK FASILITAS -->
-    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px;">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px;">
       {daftarFasilitas.map((item) => (
-        <div style="border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden; background-color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02), 0 2px 4px -1px rgba(0,0,0,0.02);">
+        <div style="border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; background-color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); display: flex; flex-direction: column;">
           
-          <!-- Placeholder Visual untuk Fasilitas -->
-          <div style="width: 100%; height: 180px; background-color: #e0f2fe; display: flex; align-items: center; justify-content: center; font-size: 3rem;">
-            🏢
+          <!-- Placeholder Visual SVG (Lebih Modern dibanding sekadar teks emoji) -->
+          <div style="width: 100%; height: 180px; background-color: #e0f2fe; display: flex; align-items: center; justify-content: center; border-bottom: 1px solid #f1f5f9;">
+            <svg style="width: 48px; height: 48px; color: #0284c7;" xmlns="http://w3.org" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-10.5h16.5M2.25 15h19.5m-18-6h16.5M2.25 5.25h19.5M3.75 21V5.25m16.5 15.75V5.25" />
+            </svg>
           </div>
 
-          <div style="padding: 20px;">
-            <h3 style="margin: 0 0 10px 0; font-size: 1.2rem; color: #0f172a; font-weight: bold;">
+          <!-- Informasi Konten Kardus -->
+          <div style="padding: 24px; flex-grow: 1; display: flex; flex-direction: column; gap: 8px;">
+            <h3 style="margin: 0; font-size: 1.25rem; color: #0f172a; font-weight: 700; letter-spacing: -0.3px;">
               {item.nama}
             </h3>
-            <p style="margin: 0; font-size: 0.9rem; color: #475569; line-height: 1.5;">
+            <p style="margin: 0; font-size: 0.92rem; color: #475569; line-height: 1.6; font-weight: 400;">
               {item.deskripsi}
             </p>
           </div>

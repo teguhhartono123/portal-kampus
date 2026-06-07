@@ -1,0 +1,63 @@
+---
+// src/pages/baca.astro
+import Layout from '../layouts/Layout.astro';
+import { env } from 'cloudflare:workers';
+
+const { request } = Astro;
+const url = new URL(request.url);
+const idParam = url.searchParams.get('id');
+
+let pengumuman: any = null;
+let pesanError = "";
+
+try {
+  const db = env.database_campuses || env.database_kampus;
+  if (!db) throw new Error("Koneksi database gagal.");
+
+  if (idParam) {
+    // Query specific row based on the clicked announcement ID parameter
+    const result = await db.prepare("SELECT * FROM daftar_pengumuman WHERE id = ?").bind(idParam).first();
+    pengumuman = result;
+  }
+  
+  if (!pengumuman) {
+    throw new Error("Data pengumuman tidak ditemukan atau sudah dihapus oleh admin.");
+  }
+} catch (error: any) {
+  pesanError = error.message;
+}
+---
+
+<Layout title={pengumuman ? `${pengumuman.judul} - STIT YA'MAL` : "Error - Detail Pengumuman"}>
+  <main style="padding: 40px 20px; font-family: sans-serif; max-width: 750px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px;">
+    
+    <a href="/" style="text-decoration: none; color: #0d9488; font-weight: bold; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 6px;">
+      ⬅ Kembali ke Beranda
+    </a>
+
+    {pesanError ? (
+      <div style="padding: 20px; background-color: #fff1f2; color: #b91c1c; border-radius: 12px; border: 1px solid #fecdd3; font-weight: 600;">
+        ⚠️ {pesanError}
+      </div>
+    ) : (
+      <article style="display: flex; flex-direction: column; gap: 16px;">
+        <span style="align-self: flex-start; font-size: 0.75rem; color: #0f766e; background-color: #ccfbf1; padding: 4px 10px; border-radius: 6px; font-weight: bold; border: 1px solid #99f6e4; text-transform: uppercase;">
+          {pengumuman.tipe}
+        </span>
+        
+        <h1 style="font-size: 2.2rem; font-weight: 800; color: #0f172a; line-height: 1.3; margin: 0; letter-spacing: -0.5px;">
+          {pengumuman.judul}
+        </h1>
+        
+        <p style="color: #64748b; font-size: 0.88rem; margin: 0; padding-bottom: 16px; border-bottom: 1px solid #e2e8f0; font-weight: 500;">
+          📅 Diterbitkan pada: {pengumuman.tanggal}
+        </p>
+        
+        <div style="color: #334155; font-size: 1.1rem; line-height: 1.7; white-space: pre-wrap; font-weight: 400; padding-top: 8px;">
+          {pengumuman.isi}
+        </div>
+      </article>
+    )}
+    
+  </main>
+</Layout>

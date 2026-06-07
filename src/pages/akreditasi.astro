@@ -1,11 +1,41 @@
 ---
+// Import your layout template at the very top frontmatter
 import Layout from '../layouts/Layout.astro';
 ---
-<Layout title="Akreditasi - STIT YA'MAL">
-  <main style="padding: 40px 20px; font-family: sans-serif; max-width: 800px; margin: 0 auto;">
-    <h1 style="font-size: 2.5rem; color: #111827;">Akreditasi Institusi BAN-PT</h1>
-    <p style="color: #475569; line-height: 1.7; font-size: 1.1rem;">
-      Seluruh program studi di Sekolah Tinggi Ilmu Tarbiyah (STIT) YA'MAL Tangerang telah resmi terakreditasi oleh Badan Akreditasi Nasional Perguruan Tinggi (BAN-PT), menjamin mutu kurikulum dan legalitas lulusan di dunia kerja.
-    </p>
+
+<Layout title="Akreditasi Institusi - STIT YA'MAL Tangerang">
+  <main style="padding: 40px 20px; font-family: sans-serif; max-width: 1100px; margin: 0 auto;">
+    <!-- Main Welcome Header Container -->
+    <div style="text-align: left; margin: 20px 0 40px 0; padding: 0 10px;">
+      <h1
+        style="font-size: 2.4rem; font-weight: 800; color: #0f172a; margin-bottom: 8px; letter-spacing: -0.5px;"
+      >
+        Akreditasi Institusi BAN-PT
+      </h1>
+
+      <!-- Visual Credibility Badge Component -->
+      <div
+        style="display: inline-block; background-color: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; padding: 6px 14px; border-radius: 9999px; font-weight: bold; font-size: 0.9rem; margin-top: 4px;"
+      >
+        🛡️ Terakreditasi Resmi BAN-PT & LAMDIK
+      </div>
+    </div>
+
+    <!-- Structured Max-Width Content Card Container -->
+    <div
+      style="padding: 30px; border: 1px solid #e2e8f0; border-radius: 16px; background-color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); max-width: 850px; line-height: 1.7;"
+    >
+      <p style="margin-top: 0; color: #334155; font-size: 1.1rem; font-weight: 500;">
+        Seluruh program studi di Sekolah Tinggi Ilmu Tarbiyah (STIT) YA'MAL Tangerang telah resmi
+        terakreditasi oleh Badan Akreditasi Nasional Perguruan Tinggi (BAN-PT).
+      </p>
+
+      <hr style="border: 0; border-top: 1px solid #f1f5f9; margin: 20px 0;" />
+
+      <p style="color: #64748b; font-size: 1rem; margin-bottom: 0;">
+        Hal ini menjamin mutu kurikulum, standar kompetensi dosen, keandalan sarana prasarana, serta
+        legalitas kelulusan para alumni di dunia kerja dan instansi pemerintahan nasional.
+      </p>
+    </div>
   </main>
 </Layout>
