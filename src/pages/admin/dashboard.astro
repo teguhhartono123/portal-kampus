@@ -1,5 +1,5 @@
 ---
-// src/pages/admin.astro - PART 1: COMPLETE CMS DATA PIPELINE
+// src/pages/admin/dashboard.astro - LOGIKA BACKEND CMS SATU PINTU (CLEAN WORKSPACE)
 import Layout from '../../layouts/Layout.astro';
 import { env } from 'cloudflare:workers';
 
@@ -11,9 +11,7 @@ let tipePesan = "";
 
 const db = env.database_campuses || env.database_kampus;
 
-// ========================================================
-// 🔐 SKRIP SATPAM: SELIPKAN DI ATAS FORM ACTIONS
-// ========================================================
+// 🔐 SECURITY GATE: VALIDASI COOKIE ADMIN
 const tokenSesi = Astro.cookies.get("admin_session")?.value;
 const sessionKV = env.SESSION;
 let adminTervalidasi = false;
@@ -28,94 +26,151 @@ if (tokenSesi && sessionKV) {
 if (!adminTervalidasi) {
   return Astro.redirect("/admin");
 }
-// ========================================================
 
-
-// FORM ACTIONS HANDLER
-if (request.method === 'POST') {
+// 🏛️ MAIN FORM ACTIONS HANDLER (POST REQUEST)
+if (request.method === "POST") {
   try {
-    if (!db) throw new Error("Database binding configuration not found.");
+    if (!db) throw new Error("Koneksi database_kampus tidak ditemukan.");
+    
     const formData = await request.formData();
-    const aksi = formData.get('aksi_tipe');
+    // Gunakan form_type sebagai satu-satunya penentu aksi formulir
+    const formType = formData.get("form_type")?.toString();
 
-    if (aksi === 'tambah_pengumuman') {
-      const judul = formData.get('judul_pengumuman') as string;
-      const tipe = formData.get('tipe_pengumuman') as string;
-      await db.prepare("INSERT INTO daftar_pengumuman (judul, tanggal, tipe) VALUES (?, '06 Juni 2026', ?)")
-        .bind(judul, tipe).run();
-      statusPesan = "✅ New Announcement published successfully!";
-      tipePesan = "sukses";
+    // ========================================================
+    // 📸 KELOMPOK 1: MANAJEMEN UPLOAD BINARY FILE GALERI FOTO
+    // ========================================================
+    if (formType === "upload_file_galeri") {
+      const berkasFoto = formData.get("berkas_foto") as File;
+      const deskripsiFoto = formData.get("deskripsi_foto")?.toString();
+
+      if (berkasFoto && berkasFoto.size > 0 && deskripsiFoto) {
+        const arrayBuffer = await berkasFoto.arrayBuffer();
+        const base64Data = Buffer.from(arrayBuffer).toString('base64');
+        const mimeType = berkasFoto.type;
+        const directUrlData = `data:${mimeType};base64,${base64Data}`;
+
+        await db.prepare("INSERT INTO galeri_foto (url, deskripsi) VALUES (?, ?)").bind(directUrlData, deskripsiFoto).run();
+        statusPesan = "🚀 Berkas foto asli sukses diunggah langsung ke database D1 lokal!";
+        tipePesan = "sukses";
+      }
     }
-    if (aksi === 'hapus_pengumuman') {
-      const idHapus = formData.get('id_pengumuman');
-      await db.prepare("DELETE FROM daftar_pengumuman WHERE id = ?").bind(idHapus).run();
-      statusPesan = `🗑️ Announcement record #${idHapus} deleted successfully!`;
-      tipePesan = "sukses";
+
+    // Aksi hapus galeri foto
+    if (formType === "hapus_galeri") {
+      const hapusFotoId = formData.get("hapus_foto_id")?.toString();
+      if (hapusFotoId) {
+        await db.prepare("DELETE FROM galeri_foto WHERE id = ?").bind(parseInt(hapusFotoId)).run();
+        statusPesan = "🗑️ Foto dokumentasi berhasil dihapus dari server cloud!";
+        tipePesan = "sukses";
+      }
     }
-    if (aksi === 'tambah_unduhan') {
-      const nama = formData.get('nama_file') as string;
-      const kat = formData.get('kategori_file') as string;
-      const fmt = formData.get('format_file') as string;
-      const size = formData.get('ukuran_file') as string;
-      const url = formData.get('url_file') as string;
-      await db.prepare("INSERT INTO daftar_unduhan (nama, kategori, format, ukuran, download_url) VALUES (?, ?, ?, ?, ?)")
-        .bind(nama, kat, fmt, size, url).run();
-      statusPesan = "✅ New Document asset added to download centre!";
-      tipePesan = "sukses";
+
+    // ========================================================
+    // 📝 KELOMPOK 2: MANAJEMEN DATA LAMA (PENGUMUMAN, UNDUHAN, JURNAL)
+    // ========================================================
+
+    // 1. Tambah Pengumuman
+    if (formType === "tambah_pengumuman") {
+      const judul = formData.get("judul_pengumuman")?.toString();
+      const tipe = formData.get("tipe_pengumuman")?.toString();
+      if (judul && tipe) {
+        await db.prepare("INSERT INTO daftar_pengumuman (judul, tanggal, tipe) VALUES (?, '07 Juni 2026', ?)").bind(judul, tipe).run();
+        statusPesan = "🚀 New Announcement published successfully!";
+        tipePesan = "sukses";
+      }
     }
-    if (aksi === 'hapus_unduhan') {
-      const idHapusFile = formData.get('id_unduhan');
-      await db.prepare("DELETE FROM daftar_unduhan WHERE id = ?").bind(idHapusFile).run();
-      statusPesan = `🗑️ Document asset record #${idHapusFile} removed from D1!`;
-      tipePesan = "sukses";
+
+    // 2. Hapus Pengumuman
+    if (formType === "hapus_pengumuman") {
+      const idHapus = formData.get("id_pengumuman")?.toString();
+      if (idHapus) {
+        await db.prepare("DELETE FROM daftar_pengumuman WHERE id = ?").bind(idHapus).run();
+        statusPesan = "Announcement record deleted successfully!";
+        tipePesan = "sukses";
+      }
     }
-    if (aksi === 'tambah_jurnal') {
-      const jdl = formData.get('j_judul') as string;
-      const pnl = formData.get('j_penulis') as string;
-      const volume = formData.get('j_vol') as string;
-      const stts = formData.get('j_status') as string;
-      const link = formData.get('j_url') as string;
-      await db.prepare("INSERT INTO daftar_jurnal (judul, penulis, vol, status, pdf_url) VALUES (?, ?, ?, ?, ?)")
-        .bind(jdl, pnl, volume, stts, link).run();
-      statusPesan = "✅ Research journal record indexed to university database!";
-      tipePesan = "sukses";
+
+    // 3. Tambah Unduhan Dokumen
+    if (formType === "tambah_unduhan") {
+      const nama = formData.get("nama_file")?.toString();
+      const kat = formData.get("kategori_file")?.toString();
+      const fmt = formData.get("format_file")?.toString();
+      const size = formData.get("ukuran_file")?.toString();
+      const url = formData.get("url_file")?.toString();
+      if (nama && kat && fmt && size && url) {
+        await db.prepare("INSERT INTO daftar_unduhan (nama, kategori, format, ukuran, download_url) VALUES (?, ?, ?, ?, ?)").bind(nama, kat, fmt, size, url).run();
+        statusPesan = "📂 New Document asset added to download centre!";
+        tipePesan = "sukses";
+      }
     }
-    if (aksi === 'hapus_jurnal') {
-      const idHapusJurnal = formData.get('id_jurnal');
-      await db.prepare("DELETE FROM daftar_jurnal WHERE id = ?").bind(idHapusJurnal).run();
-      statusPesan = `🗑️ Journal index entry #${idHapusJurnal} deleted successfully!`;
-      tipePesan = "sukses";
+
+    // 4. Hapus Unduhan Dokumen
+    if (formType === "hapus_unduhan") {
+      const idHapus = formData.get("id_unduhan")?.toString();
+      if (idHapus) {
+        await db.prepare("DELETE FROM daftar_unduhan WHERE id = ?").bind(idHapus).run();
+        statusPesan = "Download asset record removed from D1!";
+        tipePesan = "sukses";
+      }
     }
+
+    // 5. Tambah Index Jurnal Ilmiah
+    if (formType === "tambah_jurnal") {
+      const judul = formData.get("judul_jurnal")?.toString();
+      const penulis = formData.get("penulis_jurnal")?.toString();
+      const volume = formData.get("volume_jurnal")?.toString();
+      const status = formData.get("status_jurnal")?.toString();
+      const url = formData.get("url_jurnal")?.toString();
+      if (judul && penulis && volume && status && url) {
+        await db.prepare("INSERT INTO daftar_jurnal (judul, penulis, vol, status, pdf_url) VALUES (?, ?, ?, ?, ?)").bind(judul, penulis, volume, status, url).run();
+        statusPesan = "📚 Research journal record indexed to university database!";
+        tipePesan = "sukses";
+      }
+    }
+
+    // 6. Hapus Index Jurnal Ilmiah
+    if (formType === "hapus_jurnal") {
+      const idHapus = formData.get("id_jurnal")?.toString();
+      if (idHapus) {
+        await db.prepare("DELETE FROM daftar_jurnal WHERE id = ?").bind(idHapus).run();
+        statusPesan = "Journal index entry removed successfully!";
+        tipePesan = "sukses";
+      }
+    }
+
   } catch (error: any) {
     statusPesan = `❌ Database Action Failed: ${error.message}`;
     tipePesan = "gagal";
   }
 }
 
+// ========================================================
+// 3. DYNAMIC READ FETCHES (TARIK DATA REKOR UNTUK RENDER TABEL)
+// ========================================================
 let pengumumanRows: any[] = [];
 let unduhanRows: any[] = [];
 let jurnalRows: any[] = [];
+let listGaleri: any[] = [];
 
-// 2. DYNAMIC READ FETCHES - WRAPPED SAFELY IN A TRY/CATCH
-// Inside src/pages/admin.astro - Remove the "let" keywords on these three lines
 if (db) {
   try {
     const fetchP = await db.prepare("SELECT * FROM daftar_pengumuman ORDER BY id DESC").all();
     pengumumanRows = fetchP.results || [];
-    
+
     const fetchU = await db.prepare("SELECT * FROM daftar_unduhan ORDER BY id DESC").all();
     unduhanRows = fetchU.results || [];
-    
+
     const fetchJ = await db.prepare("SELECT * FROM daftar_jurnal ORDER BY id DESC").all();
     jurnalRows = fetchJ.results || [];
+
+    const fetchG = await db.prepare("SELECT * FROM galeri_foto ORDER BY id DESC").all();
+    listGaleri = fetchG.results || [];
   } catch (err: any) {
     console.error("Gagal membaca baris database:", err.message);
-    pengumumanRows = [];
-    unduhanRows = [];
-    jurnalRows = [];
   }
 }
 ---
+
 
 <Layout title="Internal Admin Portal - STIT YA'MAL">
   <main style="padding: 40px 20px; font-family: sans-serif; max-width: 1000px; margin: 0 auto; display: flex; flex-direction: column; gap: 40px;">
@@ -192,6 +247,58 @@ if (db) {
       </div>
 
     </div>
+
+        <!-- ======================================================== -->
+    <!-- 📸 FORMULIR UPLOAD ARSIP FOTO ASLI (CHOOSE FILE BINARY)  -->
+    <!-- ======================================================== -->
+    <div style="background-color: #f8fafc; padding: 28px; border-radius: 14px; border: 2px dashed #cbd5e1; display: flex; flex-direction: column; gap: 16px; margin-top: 12px;">
+      <div>
+        <h3 style="margin: 0 0 4px 0; font-size: 1.15rem; color: #0f172a; display: flex; align-items: center; gap: 8px;">
+          📁 Formulir Upload Arsip Foto Internal Kampus
+        </h3>
+        <p style="margin: 0; color: #64748b; font-size: 0.85rem; font-weight: 500;">
+          Pilih berkas dokumen foto asli (.jpg/.png) langsung dari penyimpanan lokal komputer/HP untuk diterbitkan ke cloud server.
+        </p>
+      </div>
+
+      <!-- Form menggunakan enctype multipart/form-data untuk menangkap file binary -->
+      <form method="POST" enctype="multipart/form-data" style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px;">
+        <input type="hidden" name="form_type" value="upload_file_galeri" />
+        
+        <!-- Kolom Pilih Berkas Gambar -->
+        <div style="flex: 1; min-width: 250px; display: flex; flex-direction: column; gap: 6px;">
+          <label style="font-size: 0.8rem; font-weight: 700; color: #475569;">Select Documentation File Images:</label>
+          <input 
+            type="file" 
+            name="berkas_foto" 
+            accept="image/*" 
+            required 
+            style="padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem; background-color: #ffffff; width: 100%; box-sizing: border-box;" 
+          />
+        </div>
+
+        <!-- Kolom Input Teks Deskripsi Kegiatan -->
+        <div style="flex: 1.5; min-width: 300px; display: flex; flex-direction: column; gap: 6px;">
+          <label style="font-size: 0.8rem; font-weight: 700; color: #475569;">Short Photo Description Activity:</label>
+          <input 
+            type="text" 
+            name="deskripsi_foto" 
+            placeholder="Contoh: Kegiatan Orientasi Mahasiswa Baru Tahun Akademik 2026..." 
+            required 
+            style="padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem; width: 100%; box-sizing: border-box;" 
+          />
+        </div>
+
+        <!-- Tombol Aksi Eksekusi Upload -->
+        <button 
+          type="submit" 
+          style="padding: 11px 24px; background-color: #10b981; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 6px; height: 41px;"
+        >
+          🚀 Unggah ke Server Cloud
+        </button>
+      </form>
+    </div>
+
 
     <!-- ==================== PART 2-B: DATABASES REAL-TIME VIEWS TABLES ==================== -->
     
@@ -291,6 +398,40 @@ if (db) {
         </tbody>
       </table>
     </div>
+
+    <!-- TABEL MANAGEMENT GALERI FOTO -->
+    <div style="background-color: #ffffff; padding: 24px; border-radius: 12px; border: 1px solid #e2e8f0; margin-top: 24px;">
+    <h3 style="margin: 0 0 16px 0; font-size: 1.1rem; color: #0f172a;">⚔️ Manage Photo Gallery Index</h3>
+    <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
+          <thead>
+            <tr style="border-bottom: 2px solid #e2e8f0; background-color: #f8fafc;">
+              <th style="padding: 10px;">ID Row</th>
+              <th style="padding: 10px;">Preview Image</th>
+              <th style="padding: 10px;">Description Activity</th>
+              <th style="padding: 10px; text-align: center; width: 80px;">Action</th>
+            </tr>
+          </thead>
+
+        <tbody>
+            {listGaleri.map((g) => (
+            <tr style="border-bottom: 1px solid #f1f5f9;">
+                <td style="padding: 12px; font-weight: bold; color: #64748b;">#{g.id}</td>
+                <td style="padding: 12px;"><img src={g.url} style="width: 60px; height: 45px; object-fit: cover; border-radius: 4px;" alt="" /></td>
+                <td style="padding: 12px; font-weight: 600; color: #0f172a;">{g.deskripsi}</td>
+                <td style="padding: 12px; text-align: center;">
+                <form method="POST" style="margin: 0;">
+                    <input type="hidden" name="form_type" value="hapus_galeri" />
+                    <input type="hidden" name="hapus_foto_id" value={g.id} />
+                    <button type="submit" style="padding: 4px 10px; background-color: #fff1f2; color: #e11d48; border: 1px solid #fecdd3; border-radius: 4px;  font-weight: bold; cursor: pointer; font-size: 0.8rem;">Delete</button>                    </form>
+                </td>
+            </tr>
+            ))}
+        </tbody>
+        </table>
+    </div>
+    </div>
+
 
   </main>
 </Layout>
