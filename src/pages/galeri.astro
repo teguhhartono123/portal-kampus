@@ -107,39 +107,3 @@ try {
     </div>
   </main>
 </Layout>
-
-<script>
-  const tombol = document.getElementById('tombol-upload-kampus');
-  const input = document.getElementById('input-file-kampus') as HTMLInputElement;
-  const status = document.getElementById('status-upload');
-
-  tombol?.addEventListener('click', async () => {
-    if (!input || !input.files || input.files.length === 0) {
-      if (status) status.innerText = "❌ Silakan pilih file foto terlebih dahulu!";
-      return;
-    }
-
-    if (status) status.innerText = "⏳ Sedang memproses file dan mengunggah...";
-
-    const formData = new FormData();
-    formData.append('foto-kampus', input.files[0]);
-
-    try {
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData
-      });
-
-      const hasil = await response.json();
-
-      if (response.ok) {
-        if (status) status.innerHTML = `✅ ${hasil.pesan}<br>📁 Nama: ${hasil.namaFile}`;
-        setTimeout(() => window.location.reload(), 2000);
-      } else {
-        if (status) status.innerText = `❌ Gagal: ${hasil.error}`;
-      }
-    } catch (err: any) {
-      if (status) status.innerText = `❌ Error Jaringan: ${err.message}`;
-    }
-  });
-</script>
