@@ -1,20 +1,23 @@
 {
-  "name": "stityamaltangerang",
-  "compatibility_flags": ["global_fetch_strictly_public", "nodejs_compat"],
-  "observability": {
-    "enabled": true
-  },
-  "d1_databases": [
-    {
-      "binding": "database_kampus",
-      "database_name": "database-kampus",
-      "database_id": "1fa6113e-d511-48d2-af7c-d741ad732d9d"
-    }
-  ],
-  "kv_namespaces": [
-    {
-      "binding": "SESSION",
-      "id": "stityamaltangerang-session-v2"
-    }
-  ]
+	"name": "stityamaltangerang",
+	"compatibility_flags": [
+		"global_fetch_strictly_public",
+		"nodejs_compat"
+	],
+	"observability": {
+		"enabled": true
+	},
+	"d1_databases": [
+		{
+			"binding": "database_kampus",
+			"database_name": "database-kampus",
+			"database_id": "1fa6113e-d511-48d2-af7c-d741ad732d9d"
+		}
+	],
+	"kv_namespaces": [
+		{
+			"binding": "SESSION",
+			"id": "ed53e2b2f7b14eeca0614f3d56f35986"
+		}
+	]
 }
