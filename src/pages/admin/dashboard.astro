@@ -123,13 +123,9 @@ if (request.method === "POST") {
       const berkasFile = formData.get("berkas_file") as File;
 
       if (nama && kat && fmt && size && berkasFile && berkasFile.size > 0) {
-        // Proses kompresi file biner menjadi format string Base64 Data URL
-        const arrayBuffer = await berkasFile.arrayBuffer();
-        const base64Data = Buffer.from(arrayBuffer).toString('base64');
-        const mimeType = berkasFile.type || "application/octet-stream";
-        const directUrlData = `data:${mimeType};base64,${base64Data}`;
+        const buffer = Buffer.from(await berkasFile.arrayBuffer());
+        const directUrlData = `data:${mimeType};base64,${buffer.toString("base64")}`;
 
-        // Suntikkan string Base64 langsung ke brankas download_url database D1
         await db.prepare("INSERT INTO daftar_unduhan (nama, kategori, format, ukuran, download_url) VALUES (?, ?, ?, ?, ?)").bind(nama, kat, fmt, size, directUrlData).run();
         statusPesan = "📂 Berkas dokumen kampus sukses diunggah langsung ke database D1 lokal!";
         tipePesan = "sukses";
