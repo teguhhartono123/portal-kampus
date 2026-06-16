@@ -246,7 +246,7 @@ if (db) {
     const fetchP = await db.prepare("SELECT * FROM daftar_pengumuman ORDER BY id DESC").all();
     pengumumanRows = fetchP.results || [];
 
-    const fetchU = await db.prepare("SELECT * FROM daftar_unduhan ORDER BY id DESC").all();
+    const fetchU = await db.prepare("SELECT * FROM daftar_unduhan WHERE kategori != 'Brosur' ORDER BY id DESC").all();
     unduhanRows = fetchU.results || [];
 
     const fetchG = await db.prepare("SELECT * FROM galeri_foto ORDER BY id DESC").all();
@@ -304,7 +304,7 @@ if (db) {
         </a>
 
         <a href="#section-brosur" onmouseover="this.style.backgroundColor='#1e293b'; this.style.color='#f8fafc';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='#94a3b8';" style="text-decoration: none; color: #94a3b8; padding: 8px 14px; border-radius: 6px; font-size: 0.78rem; font-weight: 700; transition: all 0.15s; display: inline-flex; align-items: center; gap: 6px;">
-          📄 Brosur
+          📄 Brosur PMB
         </a>
     
       </div>
@@ -548,7 +548,7 @@ if (db) {
       </table>
     </div>
 
-    <!-- TABLE 2: FILE Unduhn CENTER MANAGEMENT -->
+    <!-- TABLE 2: [UNDUHAN MANAGE] Manage Downloadable Documents Assets -->
     <div id="section-download" style="padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff; overflow-x: auto;">
       <h3 style="margin: 0 0 16px 0; color: #0f172a; font-size: 1.1rem; font-weight: 700;">⚔️ Manage Downloadable Documents Assets</h3>
       <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem; min-width: 600px;">
