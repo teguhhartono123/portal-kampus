@@ -8,6 +8,14 @@ const { request } = Astro;
 
 let statusPesan = "";
 let tipePesan = ""; 
+let infoBrosur = null;
+
+let pengumumanRows: any[] = [];
+let unduhanRows: any[] = [];
+let jurnalRows: any[] = [];
+let listGaleri: any[] = [];
+let daftarPengumuman: any[] = [];
+let daftarBrosurAdmin: any[] = [];
 
 const db = env.database_campuses || env.database_kampus;
 
@@ -15,6 +23,21 @@ const db = env.database_campuses || env.database_kampus;
 const tokenSesi = Astro.cookies.get("admin_session")?.value;
 const sessionKV = env.SESSION;
 let adminTervalidasi = false;
+
+if (db) {
+  try {
+    // 🟢 SENSOR MONITORING ADMIN: Ambil murni 1 data teranyar dari database untuk ditampilkan di dashboard bapak!
+    const queryBrosurAdmin = await db.prepare("SELECT * FROM konfigurasi_brosur ORDER BY id DESC LIMIT 1;").first();
+    infoBrosur = queryBrosurAdmin || null;
+    
+    // Suapkan ke dalam array biar Tabel Kelola bawah Abang langsung mekar sinkron terisi!
+    if (queryBrosurAdmin) {
+      daftarBrosurAdmin = [queryBrosurAdmin];
+    }
+  } catch (error) {
+    console.error("Gagal membaca status monitoring brosur teranyar:", error);
+  }
+}
 
 if (tokenSesi && sessionKV) {
   const dataSesi = await sessionKV.get(tokenSesi);
@@ -104,7 +127,7 @@ if (request.method === "POST") {
         const arrayBuffer = await berkasFile.arrayBuffer();
         const base64Data = Buffer.from(arrayBuffer).toString('base64');
         const mimeType = berkasFile.type || "application/octet-stream";
-        const directUrlData = `data:${mimeType};base64,base64Data`;
+        const directUrlData = `data:${mimeType};base64,${base64Data}`;
 
         // Suntikkan string Base64 langsung ke brankas download_url database D1
         await db.prepare("INSERT INTO daftar_unduhan (nama, kategori, format, ukuran, download_url) VALUES (?, ?, ?, ?, ?)").bind(nama, kat, fmt, size, directUrlData).run();
@@ -151,6 +174,66 @@ if (request.method === "POST") {
       }
     }
 
+ 
+    // 7 Tambah Brosur
+    if (formType === "update_brosur_pmb") {
+      const berkasUtama = formData.get("berkas_brosur_utama") as File;
+      const labelBrosur = formData.get("label_brosur_pmb")?.toString();
+
+      if (berkasUtama && berkasUtama.size > 0 && labelBrosur) {
+        
+        // 1. Ekstrak nama ekstensi file asli
+        const namaFileAsli = berkasUtama.name;
+        const ekstensiBersih = (namaFileAsli.split('.').pop() || 'PDF').toUpperCase();
+
+        // 2. Proses File Utama ke Base64 Data URL (Hanya lakukan ini SEKALI saja)
+        const utamaBuffer = await berkasUtama.arrayBuffer();
+        const utamaBase64 = Buffer.from(utamaBuffer).toString('base64');
+        const urlFileUtama = `data:${berkasUtama.type || "application/octet-stream"};base64,${utamaBase64}`;
+
+        // 3. LOGIKA ANTI-DOUBLING: Isi kolom cover dengan teks referensi saja, bukan file biner!
+        let referensiCover = "";
+        if (ekstensiBersih === "PDF") {
+          referensiCover = "DEFAULT_PDF_TEMPLATE"; // Penanda untuk menggunakan gambar template PDF
+        } else {
+          referensiCover = "USE_PRIMARY_FILE"; // Penanda agar mengambil langsung dari kolom url_file
+        }
+
+        // 4. Kalkulasi ukuran kapasitas file otomatis
+        const ukuranMB = `${(berkasUtama.size / (1024 * 1024)).toFixed(2)} MB`;
+
+        // 🟢 PIPELINE 1 (AUTOINCREMENT MULTI-ROW): Menyimpan data terus ke bawah sebagai rekor baru abadi!
+        await db.prepare("INSERT INTO konfigurasi_brosur (label, url_file, url_cover, format, ukuran) VALUES (?, ?, ?, ?, ?)")
+                .bind(labelBrosur, urlFileUtama, "", ekstensiBersih, ukuranMB)
+                .run();
+
+        // 🟢 PIPELINE 2 (CHAINING SAKRAL): Salin otomatis rekornya ke gudang arsip massal halaman luar unduhan bapak!
+        await db.prepare("INSERT INTO daftar_unduhan (nama, kategori, format, ukuran, download_url) VALUES (?, 'Brosur', ?, ?, ?)")
+                .bind(labelBrosur, ekstensiBersih, ukuranMB, urlFileUtama)
+                .run();
+
+        statusPesan = "✔ Sukses! Brosur Baru resmi ditambahkan ke dalam database sistem.";
+        tipePesan = "sukses";
+
+      }
+    }
+
+
+    // =========================================================================
+    // 🗑️ KABEL BACKEND BARU: EKSEKUSI HAPUS / RESET ASSET BROSUR UTAMA (D1)
+    // =========================================================================
+    if (formType === "hapus_brosur_pmb") {
+      const idBrosur = formData.get("id_brosur")?.toString();
+      
+      if (idBrosur) {
+        // Hapus rekor data brosur berdasarkan ID dari kamar database D1
+        await db.prepare("DELETE FROM konfigurasi_brosur WHERE id = ?").bind(idBrosur).run();
+        
+        statusPesan = "🗑️ Brochure removed successfully!";
+        tipePesan = "sukses";
+      }
+    }
+
   } catch (error: any) {
     statusPesan = `❌ Database Action Failed: ${error.message}`;
     tipePesan = "gagal";
@@ -160,10 +243,7 @@ if (request.method === "POST") {
 // ========================================================
 // 3. DYNAMIC READ FETCHES (TARIK DATA REKOR UNTUK RENDER TABEL)
 // ========================================================
-let pengumumanRows: any[] = [];
-let unduhanRows: any[] = [];
-let jurnalRows: any[] = [];
-let listGaleri: any[] = [];
+
 
 if (db) {
   try {
@@ -179,6 +259,11 @@ if (db) {
     const fetchJ = await db.prepare("SELECT * FROM daftar_jurnal ORDER BY id DESC").all();
     jurnalRows = fetchJ.results || [];
 
+    // 🌟 KABEL UTAMA: Tarik data berkas dari D1, lalu suapkan murni ke mangkok default atas!
+    const fetchBrosur = await db.prepare("SELECT * FROM konfigurasi_brosur ORDER BY id DESC").all();
+    daftarBrosurAdmin = fetchBrosur.results || [];
+
+
   } catch (err: any) {
     console.error("Gagal membaca baris database:", err.message);
   }
@@ -192,6 +277,48 @@ if (db) {
     <div style="text-align: center; margin-bottom: 10px;">
       <h1 style="font-size: 2.2rem; color: #1e293b; font-weight: 800; margin: 0 0 6px 0;">Internal Admin Portal</h1>
       <p style="color: #64748b; font-size: 0.95rem; margin: 0;">Safe Local Sandbox Workspace Environment. Manage your rows in real-time.</p>
+
+    {/* ========================================================================= */}
+    {/* 👑 THE GLOBAL HORIZONTAL ADMIN NAVIGATION RIBBON (UX COMPACT ANCHOR)     */}
+    {/* ========================================================================= */}
+    <nav style="background-color: #0f172a; padding: 6px 16px; border-radius: 10px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); margin: 18px 0 14px 0; width: 100%; box-sizing: border-box; overflow-x: auto; white-space: nowrap;">
+      
+      {/* Brand Mini Status Indicator */}
+      <div style="display: flex; align-items: center; gap: 6px; padding-right: 14px; border-right: 1px solid #334155; margin-right: 10px;">
+        <span style="font-size: 1rem;">🛠️</span>
+        <span style="font-size: 0.72rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em;">Quick Jump:</span>
+      </div>
+
+      {/* Interactive Anchor Control Links (UX Fitts's Law Target Size) */}
+      <div style="display: flex; align-items: center; gap: 4px;">
+        <a href="#section-broadcast" style="text-decoration: none; color: #f8fafc; background-color: #1e293b; padding: 8px 14px; border-radius: 6px; font-size: 0.78rem; font-weight: 700; transition: all 0.15s; display: inline-flex; align-items: center; gap: 6px;">
+          📢 Broadcast
+        </a>
+        
+        <a href="#section-download" onmouseover="this.style.backgroundColor='#1e293b'; this.style.color='#f8fafc';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='#94a3b8';" style="text-decoration: none; color: #94a3b8; padding: 8px 14px; border-radius: 6px; font-size: 0.78rem; font-weight: 700; transition: all 0.15s; display: inline-flex; align-items: center; gap: 6px;">
+          📦 Registrasi Unduhan
+        </a>
+        
+        <a href="#section-journal" onmouseover="this.style.backgroundColor='#1e293b'; this.style.color='#f8fafc';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='#94a3b8';" style="text-decoration: none; color: #94a3b8; padding: 8px 14px; border-radius: 6px; font-size: 0.78rem; font-weight: 700; transition: all 0.15s; display: inline-flex; align-items: center; gap: 6px;">
+          📖 Jurnal Akademik
+        </a>
+        
+        <a href="#section-gallery" onmouseover="this.style.backgroundColor='#1e293b'; this.style.color='#f8fafc';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='#94a3b8';" style="text-decoration: none; color: #94a3b8; padding: 8px 14px; border-radius: 6px; font-size: 0.78rem; font-weight: 700; transition: all 0.15s; display: inline-flex; align-items: center; gap: 6px;">
+          🖼️ Galeri Foto
+        </a>
+
+        <a href="#section-brosur" onmouseover="this.style.backgroundColor='#1e293b'; this.style.color='#f8fafc';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='#94a3b8';" style="text-decoration: none; color: #94a3b8; padding: 8px 14px; border-radius: 6px; font-size: 0.78rem; font-weight: 700; transition: all 0.15s; display: inline-flex; align-items: center; gap: 6px;">
+          📄 Brosur
+        </a>
+    
+      </div>
+
+      {/* Right Edge Alignment: Action Escape Button */}
+      <a href="/" style="text-decoration: none; color: #f43f5e; margin-left: auto; padding: 8px 14px; border-radius: 6px; font-size: 0.75rem; font-weight: 800; display: inline-flex; align-items: center; gap: 4px; transition: background-color 0.15s;" onmouseover="this.style.backgroundColor='rgba(244,63,94,0.1)';" onmouseout="this.style.backgroundColor='transparent';">
+        🚪 Keluar Web ➔
+      </a>
+    </nav>
+
     </div>
 
     {statusPesan && (
@@ -209,7 +336,7 @@ if (db) {
       <!-- CARD A: ANNOUNCEMENTS PUBLISHER -->
       <div style="padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.01);">
         <h3 style="margin: 0 0 16px 0; color: #0f172a; font-size: 1.1rem; font-weight: 700;">📢 Broadcast Announcement</h3>
-        <form method="POST" style="display: flex; flex-direction: column; gap: 12px;">
+        <form method="POST" action="/admin/dashboard" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 12px;">
           <input type="hidden" name="form_type" value="tambah_pengumuman" />
           <input type="text" name="judul_pengumuman" placeholder="Headline text..." required style="padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem;" />
           <select name="tipe_pengumuman" style="padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem; background-color: #fff;">
@@ -221,11 +348,11 @@ if (db) {
         </form>
       </div>
 
-      <!-- CARD B: FILE REGISTRATION CENTER (🌟 VERSI UPGRADE: BISA UPLOAD FILE BINARY) -->
+      <!-- CARD B: Upload Unduhan-->
       <div style="padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);">
         <h3 style="margin: 0 0 16px 0; color: #0f172a; font-size: 1.1rem; font-weight: 700;">📁 Register Download Asset</h3>
         <!-- 🌟 WAJIB MUTLAK: Sediakan enctype multipart/form-data agar browser bisa menyedot file binary -->
-        <form method="POST" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 12px;">
+        <form method="POST" action="/admin/dashboard" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 12px;">
           <input type="hidden" name="form_type" value="tambah_unduhan" />
           <input type="text" name="nama_file" placeholder="File Name (e.g. Formulir Skripsi)" required style="padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem;" />
           
@@ -253,7 +380,7 @@ if (db) {
       <!-- CARD C: E-JOURNAL RESEARCH ARCHIVER -->
       <div style="padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);">
         <h3 style="margin: 0 0 16px 0; color: #0f172a; font-size: 1.1rem; font-weight: 700;">📖 Index Academic E-Journal</h3>
-        <form method="POST" style="display: flex; flex-direction: column; gap: 12px;">
+        <form method="POST" action="/admin/dashboard" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 12px;">
           <input type="hidden" name="form_type" value="tambah_jurnal" />
           <input type="text" name="judul_jurnal" placeholder="Full Research Article Title..." required style="padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem;" />
           <input type="text" name="penulis_jurnal" placeholder="Author Name (e.g. Dr. Ahmad Fauzi)" required style="padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem;" />
@@ -270,6 +397,78 @@ if (db) {
 
     </div>
 
+    {/* ========================================================================= */}
+    {/* 🟢 FORM HIJAU PMB: MANAJEMEN BROSUR UTAMA (VERSI UPGRADE VERTICAL ANTI-LUBER) */}
+    {/* ========================================================================= */}
+    <div style="background-color: #f0fdf4; padding: 24px; border-radius: 14px; border: 2px solid #bbf7d0; box-shadow: 0 1px 3px rgba(0,0,0,0.02); display: flex; flex-direction: column; gap: 16px; width: 100%; box-sizing: border-box; margin-bottom: 14px;">
+      <div>
+        <h3 style="margin: 0 0 4px 0; font-size: 1.15rem; color: #166534; display: flex; align-items: center; gap: 8px; font-weight: 700;">
+          📄 Pintu Manajemen Brosur Utama PMB STIT YA'MAL
+        </h3>
+        <p style="margin: 0; color: #15803d; font-size: 0.85rem; font-weight: 500; opacity: 0.9;">
+          Unggah berkas brosur resmi (PDF/Gambar). Sistem otomatis memproses pembaruan halaman depan publik secara real-time.
+        </p>
+      </div>
+
+      <form id="form-brosur-pmb" method="POST" action="/admin/dashboard" enctype="multipart/form-data" style="margin: 0; display: flex; flex-direction: column; gap: 16px; width: 100%;">
+        <input type="hidden" name="form_type" value="update_brosur_pmb" />
+        
+        {/* 🌟 KUNCI RAHASIA: Mengubah susunan menjadi full-width vertikal ke bawah agar ruang teks melesat longgar */}
+        <div style="display: flex; flex-direction: column; gap: 14px; width: 100%; box-sizing: border-box;">
+          
+          {/* Baris Atas: Input File Berkas (Full-Width) */}
+          <div style="display: flex; flex-direction: column; gap: 6px; width: 100%;">
+            <label style="font-size: 0.82rem; font-weight: 700; color: #1e293b;">Pilih Berkas Brosur (PDF, JPEG, JPG, PNG, WEBP):</label>
+            <div style="width: 100%; background-color: #ffffff; border: 1px solid #bbf7d0; border-radius: 6px; padding: 8px 12px; box-sizing: border-box; min-height: 42px; display: flex; align-items: center;">
+              <input 
+                type="file" 
+                id="file-brosur-pmb"
+                name="berkas_brosur_utama" 
+                accept=".pdf,.jpg,.jpeg,.png,.webp" 
+                required 
+                style="font-size: 0.85rem; color: #475569; width: 100%; cursor: pointer;" 
+                onchange="
+                  const file = this.files;
+                  if (file) {
+                    const maxSize = 1.5 * 1024 * 1024;
+                    if (file.size > maxSize) {
+                      alert('Peringatan Sistem: Berkas gagal diproses karena ukuran dokumen yang Anda pilih (' + (file.size / (1024 * 1024)).toFixed(2) + ' MB) telah melampaui alokasi penyimpanan yang ditentukan untuk optimalisasi pangkalan data. Mohon lakukan kompresi ukuran berkas terlebih dahulu atau pilih dokumen lain.');
+                      this.value = '';
+                    }
+                  }
+                "
+              />
+            </div>
+          </div>
+
+          {/* Baris Tengah: Input Label Teks (Full-Width) */}
+          <div style="display: flex; flex-direction: column; gap: 6px; width: 100%;">
+            <label style="font-size: 0.82rem; font-weight: 700; color: #1e293b;">Label Informasi Publikasi Brosur:</label>
+            <input 
+              type="text" 
+              name="label_brosur_pmb" 
+              placeholder="Contoh: Brosur Resmi Penerimaan Mahasiswa Baru TA 2026/2027" 
+              required 
+              style="padding: 11px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.88rem; width: 100%; box-sizing: border-box; background-color: #ffffff; min-height: 42px;" 
+            />
+          </div>
+        </div>
+
+        {/* Baris Tombol Aksi Paling Bawah */}
+        <div style="width: 100%; box-sizing: border-box; margin-top: 4px;">
+          <button 
+            type="submit" 
+            style="padding: 12px 24px; background-color: #059669; color: white; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 0.9rem; display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; width: 100%; transition: background-color 0.15s;"
+            onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#047857'}
+            onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#059669'}
+          >
+            🔄 Sinkronisasikan Brosur PMB Utama
+          </button>
+        </div>
+      </form>
+    </div>
+
+
         <!-- ======================================================== -->
     <!-- 📸 FORMULIR UPLOAD ARSIP FOTO ASLI (CHOOSE FILE BINARY)  -->
     <!-- ======================================================== -->
@@ -284,7 +483,7 @@ if (db) {
       </div>
 
       <!-- Form menggunakan enctype multipart/form-data untuk menangkap file binary -->
-      <form method="POST" enctype="multipart/form-data" style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px;">
+      <form method="POST" action="/admin/dashboard" enctype="multipart/form-data" style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px;">
         <input type="hidden" name="form_type" value="upload_file_galeri" />
         
         <!-- Kolom Pilih Berkas Gambar -->
@@ -325,7 +524,7 @@ if (db) {
     <!-- ==================== PART 2-B: DATABASES REAL-TIME VIEWS TABLES ==================== -->
     
     <!-- TABLE 1: ANNOUNCEMENTS MANAGEMENT -->
-    <div style="padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff; overflow-x: auto;">
+    <div id="section-broadcast" style="padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff; overflow-x: auto;">
       <h3 style="margin: 0 0 16px 0; color: #0f172a; font-size: 1.1rem; font-weight: 700;">⚔️ Manage Announcements Data</h3>
       <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem; min-width: 500px;">
         <thead>
@@ -341,7 +540,7 @@ if (db) {
               <td style="padding: 12px; font-weight: 600; color: #1e293b; line-height: 1.4;">{row.judul}</td>
               <td style="padding: 12px; color: #64748b;"><span style="background-color:#f1f5f9; padding:2px 6px; border-radius:4px; font-size:0.75rem; font-weight:600;">{row.tipe}</span></td>
               <td style="padding: 12px; text-align: center;">
-                <form method="POST" style="margin: 0;">
+                <form method="POST" action="/admin/dashboard" style="margin: 0;">
                   <input type="hidden" name="form_type" value="hapus_pengumuman" />
                   <input type="hidden" name="id_pengumuman" value={row.id} />
                   <button type="submit" style="padding: 4px 10px; background-color: #fff1f2; color: #e11d48; border: 1px solid #fecdd3; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 0.8rem;">Delete</button>
@@ -353,8 +552,8 @@ if (db) {
       </table>
     </div>
 
-    <!-- TABLE 2: FILE CENTER MANAGEMENT -->
-    <div style="padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff; overflow-x: auto;">
+    <!-- TABLE 2: FILE Unduhn CENTER MANAGEMENT -->
+    <div id="section-download" style="padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff; overflow-x: auto;">
       <h3 style="margin: 0 0 16px 0; color: #0f172a; font-size: 1.1rem; font-weight: 700;">⚔️ Manage Downloadable Documents Assets</h3>
       <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem; min-width: 600px;">
         <thead>
@@ -385,7 +584,7 @@ if (db) {
     </div>
 
     <!-- TABLE 3: LIVE JOURNAL INDEX RECORDS MANAGEMENT -->
-    <div style="padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff; overflow-x: auto;">
+    <div id="section-journal" style="padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff; overflow-x: auto;">
       <h3 style="margin: 0 0 16px 0; color: #0f172a; font-size: 1.1rem; font-weight: 700;">⚔️ Manage E-Journal Index Archives</h3>
       <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem; min-width: 600px;">
         <thead>
@@ -422,7 +621,7 @@ if (db) {
     </div>
 
     <!-- TABEL MANAGEMENT GALERI FOTO -->
-    <div style="background-color: #ffffff; padding: 24px; border-radius: 12px; border: 1px solid #e2e8f0; margin-top: 24px;">
+    <div id="section-gallery" style="background-color: #ffffff; padding: 24px; border-radius: 12px; border: 1px solid #e2e8f0; margin-top: 24px;">
     <h3 style="margin: 0 0 16px 0; font-size: 1.1rem; color: #0f172a;">⚔️ Manage Photo Gallery Index</h3>
     <div style="overflow-x: auto;">
         <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
@@ -454,6 +653,62 @@ if (db) {
     </div>
     </div>
 
+
+    {/* ========================================================================= */}
+    {/* ⚔️ TABEL MONITORING: MANAGE ACTIVE BROCHURE ASSET (ANTI-CACHED) */}
+    {/* ========================================================================= */}
+    <div id="section-brosur" style="background-color: #ffffff; padding: 24px; border-radius: 14px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 14px; margin-top: 14px; margin-bottom: 24px;">
+      <h3 style="margin: 0; font-size: 1.1rem; color: #1e293b; display: flex; align-items: center; gap: 6px; font-weight: 700;">
+        ⚔️ Manage Active Brochure Asset
+      </h3>
+      
+      <div style="overflow-x: auto; width: 100%;">
+        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
+          <thead>
+            <tr style="border-bottom: 2px solid #cbd5e1; color: #475569; font-weight: 700;">
+              <th style="padding: 10px 8px;">Brochure Title / Label</th>
+              <th style="padding: 10px 8px; width: 100px; text-align: center;">Format</th>
+              <th style="padding: 10px 8px; width: 120px; text-align: center;">Size</th>
+              <th style="padding: 10px 8px; width: 100px; text-align: center;">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {daftarBrosurAdmin.length === 0 ? (
+              <tr style="border-bottom: 1px solid #f1f5f9;">
+                <td colspan="4" style="padding: 16px 8px; color: #94a3b8; text-align: center; font-style: italic;">
+                  Belum ada aset brosur aktif yang tersinkronisasi di halaman depan.
+                </td>
+              </tr>
+            ) : (
+              daftarBrosurAdmin.map((brosur: any) => (
+                <tr style="border-bottom: 1px solid #f1f5f9; transition: background-color 0.15s;" onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'} onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
+                  <td style="padding: 12px 8px; color: #1e293b; font-weight: 600; max-width: 300px; word-break: break-word;">
+                    {brosur.label}
+                  </td>
+                  <td style="padding: 12px 8px; text-align: center; color: #475569; font-weight: 700;">
+                    <span style="background-color: #f1f5f9; padding: 3px 8px; border-radius: 4px; font-size: 0.8rem;">
+                      {brosur.format}
+                    </span>
+                  </td>
+                  <td style="padding: 12px 8px; text-align: center; color: #64748b; font-size: 0.85rem;">
+                    {brosur.ukuran}
+                  </td>
+                  <td style="padding: 12px 8px; text-align: center;">
+                    <form method="POST" style="margin: 0; display: inline;">
+                      <input type="hidden" name="form_type" value="hapus_brosur_pmb" />
+                      <input type="hidden" name="id_brosur" value={brosur.id} />
+                      <button type="submit" style="background: none; border: none; color: #ef4444; font-weight: 700; font-size: 0.85rem; cursor: pointer; padding: 4px 8px; border-radius: 4px; transition: all 0.15s;" onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#fee2e2'} onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
+                        Delete
+                      </button>
+                    </form>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
 
   </main>
 </Layout>

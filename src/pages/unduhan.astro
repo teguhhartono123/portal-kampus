@@ -43,7 +43,8 @@ try {
 ---
 
 <Layout title="Unduhan Berkas - STIT YA'MAL">
-  <main style="padding: 40px 20px; font-family: sans-serif; max-width: 850px; margin: 0 auto; display: flex; flex-direction: column; gap: 36px;">
+
+  <main style="padding: 40px 20px; font-family: sans-serif; max-width: 850px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px;">
     
     <!-- PAGE HEADER SECTION -->
     <div style="text-align: left; padding: 0 5px;">
@@ -55,12 +56,39 @@ try {
       </p>
     </div>
 
-    <!-- MUTED SYSTEM STATUS LOG (For clean UX debugging) -->
+    <!-- MUTED SYSTEM STATUS LOG -->
     {pesanError && (
       <div style="padding: 14px 18px; background-color: #fff1f2; color: #b91c1c; border: 1px solid #fecdd3; border-radius: 12px; font-size: 0.9rem; font-weight: 500;">
         ⚠️ {pesanError} (Menampilkan data cadangan offline)
       </div>
     )}
+
+     {/* ========================================================================= */}
+    {/* 👑 REGION INTERAKTIF: TAB FILTER KATEGORI LENGKAP (SINKRON 100% FORM ADM)  */}
+    {/* ========================================================================= */}
+    <div style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; width: 100%; box-sizing: border-box; white-space: nowrap; margin-bottom: -4px;">
+      <button onclick="filterTabelUnduhan('Semua')" id="btn-Semua" style="padding: 8px 16px; background-color: #0f172a; color: #ffffff; border: 1px solid #0f172a; border-radius: 8px; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.15s;">
+        🗂️ Semua Berkas ({daftarUnduhan.length})
+      </button>
+      <button onclick="filterTabelUnduhan('Brosur')" id="btn-Brosur" style="padding: 8px 16px; background-color: #ffffff; color: #475569; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.15s;">
+        📄 Brosur
+      </button>
+      <button onclick="filterTabelUnduhan('Akademik')" id="btn-Akademik" style="padding: 8px 16px; background-color: #ffffff; color: #475569; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.15s;">
+        🏛️ Akademik
+      </button>
+      <button onclick="filterTabelUnduhan('Skripsi')" id="btn-Skripsi" style="padding: 8px 16px; background-color: #ffffff; color: #475569; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.15s;">
+        📝 Berkas Skripsi
+      </button>
+      <button onclick="filterTabelUnduhan('Panduan')" id="btn-Panduan" style="padding: 8px 16px; background-color: #ffffff; color: #475569; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.15s;">
+        📘 Panduan
+      </button>
+      <button onclick="filterTabelUnduhan('Beasiswa')" id="btn-Beasiswa" style="padding: 8px 16px; background-color: #ffffff; color: #475569; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.15s;">
+        🎓 Beasiswa
+      </button>
+    </div>
+
+    {/* ... Sisipkan Tabel {daftarUnduhan.map} Bawaan Abang yang Sudah Sukses di Sini ... */}
+
 
     <!-- MAIN DOWNLOAD INTERACTIVE CONTAINER -->
     <div style="padding: 24px; border: 1px solid #e2e8f0; border-radius: 16px; background-color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); overflow-x: auto;">
@@ -74,7 +102,8 @@ try {
         </thead>
         <tbody>
           {daftarUnduhan.map((file) => (
-            <tr style="border-bottom: 1px solid #f1f5f9;">
+            /* 🌟 SUNTIKKAN ATRIBUT DATA-KATEGORI DAN CLASS KHUSUS PADA BARIS TABEL */
+            <tr class="baris-unduhan-item" data-kategori={file.kategori || "Brosur"} style="border-bottom: 1px solid #f1f5f9;">
               
               <!-- Document Title & Category Badge -->
               <td style="padding: 18px 16px; vertical-align: middle;">
@@ -82,7 +111,12 @@ try {
                   <span style="color: #0f172a; font-weight: 600; line-height: 1.4;">
                     {file.nama}
                   </span>
-                  <span style="align-self: flex-start; font-size: 0.7rem; background-color: #f1f5f9; color: #475569; padding: 2px 8px; border-radius: 4px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px;">
+                  {/* Dynamic Badge Color Logic */}
+                  <span style={`align-self: flex-start; font-size: 0.7rem; padding: 2px 8px; border-radius: 4px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; ${
+                    file.kategori === 'Brosur' ? 'background-color: #dcfce7; color: #15803d;' :
+                    file.kategori === 'Skripsi' ? 'background-color: #fef9c3; color: #a16207;' :
+                    'background-color: #f1f5f9; color: #475569;'
+                  }`}>
                     📂 {file.kategori}
                   </span>
                 </div>
@@ -105,7 +139,8 @@ try {
               
               <!-- Action Button Trigger Link -->
               <td style="padding: 18px 16px; text-align: center; vertical-align: middle;">
-                <a href={file.download_url} style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 14px; background-color: #0f172a; color: #ffffff; border-radius: 8px; font-size: 0.85rem; font-weight: 700; box-shadow: 0 4px 6px rgba(15,23,42,0.05);">
+                <a href={file.download_url} 
+                download={`${file.nama.trim().replace(/[^a-zA-Z0-9]/g, "_")}.${file.format?.toLowerCase() || 'pdf'}`} style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 14px; background-color: #0f172a; color: #ffffff; border-radius: 8px; font-size: 0.85rem; font-weight: 700; box-shadow: 0 4px 6px rgba(15,23,42,0.05);">
                   📥 Download
                 </a>
               </td>
@@ -118,3 +153,41 @@ try {
 
   </main>
 </Layout>
+
+{/* 🌟 REKAYASA SKRIP: ULTRA-FAST CLIENT-SIDE ROW SENSOR FILTERING */}
+<script is:inline>
+  function filterTabelUnduhan(kategoriTarget) {
+    const semuaBaris = document.querySelectorAll('.baris-unduhan-item');
+    const daftarKategori = ['Semua', 'Brosur', 'Akademik', 'Skripsi', 'Panduan', 'Beasiswa'];
+    
+    // 1. Mutasikan Visual Tab Button Active State
+    daftarKategori.forEach((kat) => {
+      const btn = document.getElementById('btn-' + kat);
+      if (btn) {
+        if (kat === kategoriTarget) {
+          btn.style.backgroundColor = '#0f172a';
+          btn.style.color = '#ffffff';
+          btn.style.borderColor = '#0f172a';
+          btn.style.fontWeight = '700';
+        } else {
+          btn.style.backgroundColor = '#ffffff';
+          btn.style.color = '#475569';
+          btn.style.borderColor = '#e2e8f0';
+          btn.style.fontWeight = '600';
+        }
+      }
+    });
+
+    // 2. Saring Baris Tabel Secara Real-time Instan Pasca-Klik
+    semuaBaris.forEach((row) => {
+      const kategoriRow = row.getAttribute('data-kategori');
+      if (kategoriTarget === 'Semua' || kategoriRow === kategoriTarget) {
+        row.style.display = 'table-row';
+      } else {
+        row.style.display = 'none';
+      }
+    });
+  }
+</script>
+
+  </Layout>
