@@ -123,7 +123,11 @@ if (request.method === "POST") {
       const berkasFile = formData.get("berkas_file") as File;
 
       if (nama && kat && fmt && size && berkasFile && berkasFile.size > 0) {
+        // 🟢 SURAT AKTA KELAHIRAN MIMETYPE RESMI: Sesuai dengan nama variabel berkasFile milik Abang!
+        const mimeType = berkasFile.type || "application/pdf";
+
         const buffer = Buffer.from(await berkasFile.arrayBuffer());
+        // 🧠 Variabel directUrlData bapak sekarang otomatis membaca mimeType dinamis dengan aman!
         const directUrlData = `data:${mimeType};base64,${buffer.toString("base64")}`;
 
         await db.prepare("INSERT INTO daftar_unduhan (nama, kategori, format, ukuran, download_url) VALUES (?, ?, ?, ?, ?)").bind(nama, kat, fmt, size, directUrlData).run();
@@ -131,6 +135,7 @@ if (request.method === "POST") {
         tipePesan = "sukses";
       }
     }
+
 
     // 4. Hapus Unduhan Dokumen
     if (formType === "hapus_unduhan") {
