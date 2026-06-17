@@ -219,36 +219,41 @@ if (request.method === "POST") {
       }
     }
 
-
     // =========================================================================
-    // 🗑️ HAPUS BROSUR - HANDLER FORM HAPUS BROSUR: AMUNISI DESTROY DATA GANDA (DUAL-PIPELINE)
+    // 🗑️ KABEL BACKEND BARU: EKSEKUSI HAPUS / RESET ASSET BROSUR UTAMA (D1)
     // =========================================================================
     if (formType === "hapus_brosur_pmb") {
       const idBrosur = formData.get("id_brosur")?.toString();
-
+      
       if (idBrosur && db) {
         try {
-          // 1. Ambil dulu data nama label brosur yang mau didelete sebelum rekornya musnah
           const dataBrosurLama = await db.prepare("SELECT label FROM konfigurasi_brosur WHERE id = ?;").bind(idBrosur).first();
-          
-          if (dataBrosurLama && dataBrosurLama.label) {
-            const namaLabelBrosur = dataBrosurLama.label;
-            // 🟢 EKSEKUSI SAPU JAGAT 1: Tembak mati rekor di gudang unduhan massal berdasarkan kesamaan nama label!
-            await db.prepare("DELETE FROM daftar_unduhan WHERE nama = ? AND kategori = 'Brosur';").bind(namaLabelBrosur).run();
+
+          if (dataBrosurLama && dataBrosurLama.label){
+            const potonganJudul = dataBrosurLama.label.substring(0, 20);
+            const kataKunciParsial = "%" + potonganJudul + "%";
+            await db.prepare("DELETE FROM daftar_unduhan WHERE nama LIKE ? AND (kategori LIKE 'brosur' OR kategori LIKE 'BROSUR');").bind(kataKunciParsial).run();
           }
 
-          // 🟢 EKSEKUSI SAPU JAGAT 2: Tembak mati rekor utama di tangki konfigurasi_brosur
-          await db.prepare("DELETE FROM konfigurasi_brosur WHERE id = ?;").bind(idBrosur).run();
-          
-          statusPesan = "✔ Sukses! Berkas brosur beserta seluruh salinan arsip unduhannya berhasil dimusnahkan secara sinkron.";
-          tipePesan = "sukses";
-        } catch (error) {
-          console.error("Gagal menghapus dual-pipeline berkas brosur:", error);
-          statusPesan = "❌ Gagal menghapus berkas brosur dari pangkalan data.";
-          tipePesan = "error";
+        // Hapus rekor data brosur berdasarkan ID dari kamar database D1
+        await db.prepare("DELETE FROM konfigurasi_brosur WHERE id = ?").bind(idBrosur).run();
+        statusPesan = "🗑️ Brochure removed successfully!";
+        tipePesan = "sukses";
+        
+        }
+        catch(errInner){
+          console.error("Gagal menjalankan cascade delete internal:", errInner);
         }
       }
     }
+
+
+//============= catch error ini milik global db. JADI JANGAN DI OTAK ATIK
+  } catch (error: any) {
+    statusPesan = `❌ Database Action Failed: ${error.message}`;
+    tipePesan = "gagal";
+  }
+}
 
 
 // ========================================================
