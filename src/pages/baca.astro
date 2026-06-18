@@ -1,6 +1,7 @@
 ---
 // src/pages/baca.astro
 import Layout from '../layouts/Layout.astro';
+import Footer from '../components/Footer.astro';
 import { env } from 'cloudflare:workers';
 
 const { request } = Astro;
@@ -60,4 +61,5 @@ try {
     )}
     
   </main>
+  <Footer />
 </Layout>

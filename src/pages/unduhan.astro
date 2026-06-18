@@ -1,6 +1,8 @@
 ---
 // src/pages/unduhan.astro
 import Layout from '../layouts/Layout.astro';
+import Footer from '../components/Footer.astro';
+
 // 1. CARA TERBARU ASTRO v6: Menggunakan modul resmi bawaan runtime Cloudflare
 import { env } from 'cloudflare:workers';
 
@@ -189,5 +191,5 @@ try {
     });
   }
 </script>
-
+<Footer />
   </Layout>
