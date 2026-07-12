@@ -20,9 +20,15 @@
 			"id": "ed53e2b2f7b14eeca0614f3d56f35986"
 		}
 	],
-	  "vars": {
-    "ADMIN_USERNAME": "ganti_pake_username_pilihan_abang",
-    "ADMIN_PASSWORD": "ganti_pake_password_pilihan_abang"
-  }
-
+	"vars": {
+		"ADMIN_USERNAME": "ganti_pake_username_pilihan_abang",
+		"ADMIN_PASSWORD": "ganti_pake_password_pilihan_abang"
+	},
+	"r2_buckets": [
+		{
+		"bucket_name": "portal-kampus-backup-bucket",
+		"binding": "portal_kampus_backup_bucket",
+		"remote": true
+		}
+	]
 }

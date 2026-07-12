@@ -1,0 +1,428 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Footer from '../../components/Footer.astro';
+import { env } from 'cloudflare:workers';
+
+export const prerender = false;
+const { request } = Astro;
+
+let statusPesan = "";
+let tipePesan = ""; 
+let daftarMatakuliah: any[] = [];
+
+// 📡 PIPELINE D1 & KV SAKLAR ASTRO v5 SULTAN (Membaca murni via import cloudflare:workers)
+const db = env.DB || env.database_campuses || env.database_kampus;
+const sessionKV = env.SESSION;
+
+// 🔐 SECURITY GATE GATEKEEPER SULTAN: VALIDASI COOKIE ADMIN
+const tokenSesi = Astro.cookies.get("admin_session")?.value;
+let adminTervalidasi = false;
+
+if (tokenSesi && sessionKV) {
+  const dataSesi = await sessionKV.get(tokenSesi);
+  if (dataSesi) {
+    adminTervalidasi = true;
+  }
+}
+
+if (!adminTervalidasi) {
+  return Astro.redirect("/admin");
+}
+
+// 🏛️ MAIN FORM ACTIONS HANDLER (POST REQUEST BACKEND ENGINE)
+if (request.method === "POST" && db) {
+  try {
+    const formData = await request.formData();
+    const formType = formData.get("form_type")?.toString();
+
+    // 🟢 UPGRADE JALUR TAMBAH/EDIT MULTI-STATE DYNAMIC KELOMPOK MATAKULIAH
+    if (formType === "tambah_kurikulum") {
+      const idData = formData.get("id_kurikulum")?.toString(); 
+      const semester = formData.get("semester")?.toString();
+      const kelompok = formData.get("kelompok")?.toString(); // 🌟 Kawat Penentu Baru
+      const kode_mk = formData.get("kode_mk")?.toString();
+      const nama_mk = formData.get("nama_mk")?.toString();
+      const sks = formData.get("sks")?.toString();
+      const rps_url = formData.get("rps_url")?.toString() || "#";
+      const silabus_url = formData.get("silabus_url")?.toString() || "#";
+
+      if (semester && kelompok && kode_mk && nama_mk && sks) {
+        if (idData && idData !== "") {
+          await db.prepare(
+            "UPDATE kurikulum_obe SET semester = ?, kelompok = ?, kode_mk = ?, nama_mk = ?, sks = ?, rps_url = ?, silabus_url = ? WHERE id = ?"
+          )
+          .bind(semester, kelompok, kode_mk, nama_mk, parseInt(sks, 10), rps_url, silabus_url, parseInt(idData, 10))
+          .run();
+          statusPesan = `🔄 Sukses! Data mata kuliah ${kode_mk} lunas diperbarui di database D1!`;
+          tipePesan = "sukses";
+        } else {
+          await db.prepare(
+            "INSERT INTO kurikulum_obe (semester, kelompok, kode_mk, nama_mk, sks, rps_url, silabus_url) VALUES (?, ?, ?, ?, ?, ?, ?)"
+          )
+          .bind(semester, kelompok, kode_mk, nama_mk, parseInt(sks, 10), rps_url, silabus_url)
+          .run();
+          statusPesan = "🚀 Sukses! Data mata kuliah baru berhasil disuntik masuk ke database D1!";
+          tipePesan = "sukses";
+        }
+      }
+    }
+
+
+    // 🔴 B. PIPELINE ACTION: HAPUS REKOR DATA (DELETE)
+    if (formType === "hapus_kurikulum") {
+      const idHapus = formData.get("id_kurikulum")?.toString();
+      if (idHapus) {
+        await db.prepare("DELETE FROM kurikulum_obe WHERE id = ?").bind(parseInt(idHapus, 10)).run();
+        statusPesan = "🗑️ Rekor data mata kuliah sukses dipangkas dari database cloud!";
+        tipePesan = "sukses";
+      }
+    }
+
+  } catch (error: any) {
+    statusPesan = `❌ Gagal Mengeksekusi Data: ${error.message}`;
+    tipePesan = "gagal";
+  }
+}
+
+// 📡 DYNAMIC READ FETCH: Tarik data dari D1 untuk render tabel preview secara live
+if (db) {
+  try {
+    const { results } = await db.prepare("SELECT * FROM kurikulum_obe ORDER BY semester ASC, kode_mk ASC").all();
+    daftarMatakuliah = results || [];
+  } catch (err: any) {
+    console.error("Gagal membaca database D1 kurikulum:", err.message);
+  }
+}
+
+const kelompokSemester = ['Semester I', 'Semester II', 'Semester III', 'Semester IV', 'Semester V', 'Semester VI', 'Semester VII', 'Semester VIII'];
+
+// 🧠 AGGREGATION ENGINE: Otomatis menghitung dan mengelompokkan total SKS secara dynamic dari atas!
+const rekapSKS = {
+  'Wajib Universitas': 0,
+  'Wajib Fakultas': 0,
+  'Wajib Program Studi': 0,
+  'Pilihan Program Studi': 0,
+  'MBKM Program Studi': 0
+};
+
+daftarMatakuliah.forEach((item: any) => {
+  const kat = item.kelompok || 'Wajib Program Studi';
+  if (rekapSKS.hasOwnProperty(kat)) {
+    rekapSKS[kat as keyof typeof rekapSKS] += Number(item.sks || 0);
+  }
+});
+
+const totalSemuaSKS = Object.values(rekapSKS).reduce((a, b) => a + b, 0);
+---
+
+
+<Layout title="Kelola Kurikulum - Portal STIT YA'MAL">
+  <main style="padding: 40px 20px; font-family: sans-serif; max-width: 1000px; margin: 0 auto; display: flex; flex-direction: column; gap: 32px;">
+    
+    <!-- 📄 KEPALA PANEL BARU DENGAN NAVIGASI STRATEGIS -->
+    <div style="border-bottom: 2px solid #f1f5f9; padding-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+      <div>
+        <h1 style="font-size: 2.2rem; font-weight: 800; color: #0f172a; margin: 0;">Kelola Data Kurikulum</h1>
+        <p style="color: #64748b; margin: 4px 0 0 0; font-size: 0.95rem;">Workspace Khusus Manajemen Sebaran Mata Kuliah OBE STIT YA'MAL Tangerang.</p>
+      </div>
+      <div style="display: flex; gap: 10px;">
+        <a href="/admin/dashboard" style="text-decoration: none; background-color: #1e293b; color: white; padding: 10px 16px; border-radius: 8px; font-size: 0.85rem; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: background-color 0.15s;" onmouseover="this.style.backgroundColor='#334155'" onmouseout="this.style.backgroundColor='#1e293b'">
+          🔙 Balik Ke Dashboard Utama
+        </a>
+        <a href="/kurikulum" target="_blank" style="text-decoration: none; background-color: #0f172a; color: white; padding: 10px 16px; border-radius: 8px; font-size: 0.85rem; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+          👀 Lihat Web Depan
+        </a>
+      </div>
+    </div>
+
+    <!-- 🔔 TOAST NOTIFIKASI SYSTEM DYNAMIC BANNER -->
+    {statusPesan && (
+      <div style={`padding: 14px 18px; border-radius: 10px; font-weight: bold; font-size: 0.9rem; border: 1px solid;
+        background-color: ${tipePesan === 'sukses' ? '#f0fdf4' : '#fff1f2'};
+        color: ${tipePesan === 'sukses' ? '#166534' : '#b91c1c'};
+        border-color: ${tipePesan === 'sukses' ? '#bbf7d0' : '#fecdd3'};`}>
+        {statusPesan}
+      </div>
+    )}
+
+    <!-- 📥 SEKTOR 1: FORM INPUT TAMBAH & EDIT DATA (MUTLI-STATE ENGINE) -->
+    <div style="padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.01);">
+      <h3 style="margin: 0 0 16px 0; color: #0f172a; font-size: 1.15rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+        <span id="form-icon" style="color: #10b981;">➕</span> <span id="form-text">Suntik Mata Kuliah Baru ke Database D1</span>
+      </h3>
+      <form id="main-form-kurikulum" method="POST" action="/admin/kurikulum" style="display: flex; flex-direction: column; gap: 14px;">
+        <input type="hidden" name="form_type" value="tambah_kurikulum" />
+        
+        <!-- 🚨 HIDDEN INPUT BUFFER UNTUK MENYIMPAN ID SAAT EDIT DATA BERJALAN -->
+        <input type="hidden" id="input-id" name="id_kurikulum" value="" />
+        
+        <!-- Baris Inputs 1: Dropdown Semester & Kode MK -->
+        <div style="display: flex; gap: 14px; flex-wrap: wrap;">
+          <div style="flex: 1; min-width: 200px;">
+            <label style="display: block; font-size: 0.8rem; font-weight: 700; color: #475569; margin-bottom: 6px;">Pilih Blok Semester</label>
+            <select id="input-semester" name="semester" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem; background-color: #fff; cursor: pointer;">
+              {kelompokSemester.map(sem => <option value={sem}>{sem}</option>)}
+            </select>
+          </div>
+          <div style="flex: 1; min-width: 200px;">
+            <label style="display: block; font-size: 0.8rem; font-weight: 700; color: #475569; margin-bottom: 6px;">Pilih Kelompok Mata Kuliah</label>
+            <select id="input-kelompok" name="kelompok" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem; background-color: #fff; cursor: pointer;">
+                <option value="Wajib Universitas">Wajib Universitas</option>
+                <option value="Wajib Fakultas">Wajib Fakultas</option>
+                <option value="Wajib Program Studi">Wajib Program Studi</option>
+                <option value="Pilihan Program Studi">Pilihan Program Studi</option>
+                <option value="MBKM Program Studi">MBKM Program Studi</option>
+            </select>
+          </div>
+          <div style="flex: 1; min-width: 200px;">
+            <label style="display: block; font-size: 0.8rem; font-weight: 700; color: #475569; margin-bottom: 6px;">Kode Mata Kuliah</label>
+            <input type="text" id="input-kode" name="kode_mk" placeholder="Contoh: APIA110012" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem;" />
+          </div>
+        </div>
+
+        <!-- ========================================================================= -->
+        <!-- 🎛️ BARIS INPUTS 2: ANTI-NUBRUK LUXURY GRID (NAMA MK LONGGAR & SKS RAMPING)  -->
+        <!-- ========================================================================= -->
+        <div style="display: flex; gap: 14px; flex-wrap: wrap; width: 100%; box-sizing: border-box;">   
+          <!-- Kolom A: Nama Lengkap Mata Kuliah (Dibuat Melonggar Luas Spek flex: 4) -->
+          <div style="flex: 4; min-width: 280px; display: flex; flex-direction: column;">
+            <label style="display: block; font-size: 0.8rem; font-weight: 700; color: #475569; margin-bottom: 6px;">Nama Lengkap Mata Kuliah</label>
+            <input type="text" id="input-nama" name="nama_mk" placeholder="Contoh: Perbandingan Pendidikan Internasional Berbasis Tarbiyah Kontemporer" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem; box-sizing: border-box;" />
+          </div>
+
+          <!-- Kolom B: Bobot Kredit SKS (Dibuat Ramping Minimalis Spek flex: 1) -->
+          <div style="flex: 1; min-width: 120px; display: flex; flex-direction: column;">
+            <label style="display: block; font-size: 0.8rem; font-weight: 700; color: #475569; margin-bottom: 6px;">Bobot SKS</label>
+            <select id="input-sks" name="sks" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem; background-color: #fff; cursor: pointer; box-sizing: border-box;">
+              <option value="2">2 SKS</option>
+              <option value="3">3 SKS</option>
+              <option value="4">4 SKS</option>
+              <option value="6">6 SKS</option>
+            </select>
+          </div>
+        </div>
+
+
+        <!-- Baris Inputs 3: URL Cloud Google Drive Dokumen RPS & Silabus -->
+        <div style="display: flex; gap: 14px; flex-wrap: wrap;">
+          <div style="flex: 1; min-width: 250px;">
+            <label style="display: block; font-size: 0.8rem; font-weight: 700; color: #475569; margin-bottom: 6px;">🔗 Link Google Drive RPS (Opsional)</label>
+            <input type="url" id="input-rps" name="rps_url" placeholder="https://google.com..." style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem;" />
+          </div>
+          <div style="flex: 1; min-width: 250px;">
+            <label style="display: block; font-size: 0.8rem; font-weight: 700; color: #475569; margin-bottom: 6px;">🔗 Link Google Drive Silabus (Opsional)</label>
+            <input type="url" id="input-silabus" name="silabus_url" placeholder="https://google.com..." style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem;" />
+          </div>
+        </div>
+
+        <!-- Panel Tombol Multi-state Action -->
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 6px;">
+          <button type="button" id="btn-batal-edit" style="padding: 12px 20px; background-color: #64748b; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.95rem; display: none;">
+            ❌ Batal Edit
+          </button>
+          <button type="submit" id="btn-submit-action" style="padding: 12px 24px; background-color: #10b981; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.95rem; box-shadow: 0 4px 6px rgba(16,185,129,0.12); flex: 1;">
+            🚀 Simpan Mata Kuliah Baru ke Database D1
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- 🎛️ SEKTOR 2: SAKLAR FILTER SEMESTER DYNAMIC (Penyelamat Area Layarmu!) -->
+    <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 4px;">
+      <label style="font-size: 0.85rem; font-weight: 800; color: #475569; padding-left: 4px;">🎯 Filter Tampilan Rekap Berdasarkan Semester :</label>
+      <div style="display: flex; gap: 8px; flex-wrap: wrap; background: #f1f5f9; padding: 8px; border-radius: 12px; box-sizing: border-box; width: 100%; overflow-x: auto;">
+        <button type="button" class="tab-filter" data-target="all" style="padding: 8px 14px; font-size: 0.8rem; font-weight: 700; border: none; border-radius: 8px; cursor: pointer; background: #0f172a; color: white; transition: all 0.2s;">
+          ✨ Tampilkan Semua
+        </button>
+        {kelompokSemester.map(sem => (
+          <button type="button" class="tab-filter" data-target={sem.replace(' ', '-')} style="padding: 8px 14px; font-size: 0.8rem; font-weight: 700; border: none; border-radius: 8px; cursor: pointer; background: #ffffff; color: #475569; box-shadow: 0 1px 3px rgba(0,0,0,0.05); transition: all 0.2s;">
+            {sem}
+          </button>
+        ))}
+      </div>
+    </div>
+
+    <!-- 📊 SEKTOR 3: DATA TABEL PREVIEW VIEW D1 (Lengkap Tombol Edit & Hapus) -->
+    <div style="padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.01); overflow-x: auto;">
+      <h3 style="margin: 0 0 16px 0; color: #0f172a; font-size: 1.1rem; font-weight: 700;">⚔️ Daftar Sebaran Kurikulum Terdaftar ({daftarMatakuliah.length} MK)</h3>
+      <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem; min-width: 650px;">
+        <thead>
+          <tr style="background-color: #f8fafc; border-bottom: 2px solid #e2e8f0; color: #475569; font-weight: bold;">
+            <th style="padding: 12px 8px; width: 18%;">Semester</th>
+            <th style="padding: 12px 8px; width: 130px;">Kode MK</th>
+            <th style="padding: 12px 8px;">Nama Mata Kuliah</th>
+            <th style="padding: 12px 8px; text-align: center; width: 100px;">Bobot SKS</th>
+            <th style="padding: 12px 8px; text-align: center; width: 160px;">Panel Kontrol</th>
+          </tr>
+        </thead>
+        <tbody>
+          {daftarMatakuliah.length === 0 ? (
+            <tr>
+              <td colspan="5" style="padding: 30px; text-align: center; color: #94a3b8; font-style: italic; font-weight: 500;">
+                Belum ada data mata kuliah kurikulum di database D1 local bapak [dan-cf-workers-d1].
+              </td>
+            </tr>
+          ) : (
+            daftarMatakuliah.map((row) => (
+              <tr class="baris-matakuliah" data-semester={row.semester.replace(' ', '-')} style="border-bottom: 1px solid #f1f5f9; transition: background 0.1s;" onmouseover="this.style.backgroundColor='#f8fafc'" onmouseout="this.style.backgroundColor='transparent'">
+                <td style="padding: 14px 8px; font-weight: bold; color: #1e293b;">{row.semester}</td>
+                <td style="padding: 14px 8px; font-family: monospace; font-weight: bold; color: #4f46e5; font-size: 0.85rem;">{row.kode_mk}</td>
+                <td style="padding: 14px 8px; color: #334155; font-weight: 600; line-height: 1.4;">{row.nama_mk}</td>
+                <td style="padding: 14px 8px; text-align: center; font-weight: bold; color: #0f172a;">{row.sks} SKS</td>
+                <td style="padding: 14px 8px; text-align: center;">
+                  <div style="display: inline-flex; gap: 6px; justify-content: center; width: 100%;">
+                    <!-- ✏️ BUTTON EDIT TRIGGER D1 STATE -->
+                    <button type="button" class="btn-trigger-edit" data-mk={JSON.stringify(row)} style="padding: 5px 10px; background-color: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.78rem;">
+                      Edit
+                    </button>
+                    <!-- BUTTON HAPUS NATIVE -->
+                    <form method="POST" action="/admin/kurikulum" style="margin: 0;" onsubmit="return confirm('Apakah anda yakin mau menghapus matakuliah ini?')">
+                      <input type="hidden" name="form_type" value="hapus_kurikulum" />
+                      <input type="hidden" name="id_kurikulum" value={row.id} />
+                      <button type="submit" style="padding: 5px 12px; background-color: #fff1f2; color: #e11d48; border: 1px solid #fecdd3; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.78rem; transition: background 0.1s;" onmouseover="this.style.background='#ffe4e6'" onmouseout="this.style.background='#fff1f2'">
+                        Hapus
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            ))
+          )}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- 📊 SEKTOR REKAPITULASI TOTAL BEBAN SKS REAKTIF AUTOMATION (DYNAMIC LIVE) -->
+    <!-- ========================================================================= -->
+    <section style="margin-top: 14px; display: flex; flex-direction: column; gap: 18px;">
+    <div style="padding: 0 4px;">
+        <h2 style="font-size: 1.25rem; color: #0f172a; font-weight: 800; margin: 0; letter-spacing: -0.3px;">
+        Rincian Beban Kelompok Mata Kuliah Program Studi PAI (Live Dynamic Monitoring)
+        </h2>
+    </div>
+
+    <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.01); padding: 12px 24px 24px 24px;">
+        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
+        <thead>
+            <tr style="border-bottom: 2px solid #f1f5f9; color: #475569; font-weight: bold;">
+            <th style="padding: 14px 8px; width: 10%; text-align: center;">No</th>
+            <th style="padding: 14px 8px; width: 55%;">Kelompok Mata Kuliah</th>
+            <th style="padding: 14px 8px; text-align: center; width: 18%;">Beban SKS Live</th>
+            <th style="padding: 14px 8px; text-align: center; width: 17%;">Persentase (%)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {Object.entries(rekapSKS).map(([kelompok, jumlahSKS], index) => {
+            const persen = totalSemuaSKS > 0 ? ((jumlahSKS / totalSemuaSKS) * 100).toFixed(0) : '0';
+            return (
+                <tr style="border-bottom: 1px solid #f8fafc;">
+                <td style="padding: 12px 8px; text-align: center; color: #64748b; font-weight: 600;">{index + 1}</td>
+                <td style="padding: 12px 8px; color: #334155; font-weight: 600;">{kelompok}</td>
+                <td style="padding: 12px 8px; text-align: center; font-weight: bold; color: #0f172a;">{jumlahSKS}</td>
+                <td style="padding: 12px 8px; text-align: center; color: #475569; font-weight: 500;">{persen}%</td>
+                </tr>
+            );
+            })}
+            {/* 📊 REAL-TIME AUTOMATED SUMMARY ROW COUNTER */}
+            <tr style="background-color: #f8fafc; font-weight: bold;">
+            <td style="padding: 14px 8px;"></td>
+            <td style="padding: 14px 8px; color: #0f172a; text-align: center; font-weight: 800; font-size: 0.95rem;">Jumlah Total Beban</td>
+            <td style="padding: 14px 8px; text-align: center; color: #4f46e5; font-weight: 800; font-size: 1rem;">{totalSemuaSKS}</td>
+            <td style="padding: 14px 8px; text-align: center; color: #0f172a; font-weight: 800; font-size: 1rem;">{totalSemuaSKS > 0 ? '100%' : '0%'}</td>
+            </tr>
+        </tbody>
+        </table>
+    </div>
+    </section>
+
+  </main> <!-- 🔒 Penutup Tag Main Body Layout -->
+  <Footer /> <!-- 🏛️ Komponen Kaki Web STIT YA'MAL -->
+</Layout> <!-- 🔒 Penutup Tag Master Template Layout Astro -->
+
+
+<!-- ⚡ JAVASCRIPT ENGINE: HANDLING DYNAMIC TAB FILTER & INLINE EDIT SUITE -->
+<script>
+  // 1. DYNAMIC TAB FILTER MANAGEMENT
+  const tombolTabs = document.querySelectorAll('.tab-filter');
+  const barisTabel = document.querySelectorAll('.baris-matakuliah');
+
+  tombolTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tombolTabs.forEach(t => {
+        (t as HTMLButtonElement).style.background = '#ffffff';
+        (t as HTMLButtonElement).style.color = '#475569';
+      });
+
+      const activeTab = tab as HTMLButtonElement;
+      activeTab.style.background = '#0f172a';
+      activeTab.style.color = '#ffffff';
+
+      const targetSemester = activeTab.getAttribute('data-target');
+
+      barisTabel.forEach(row => {
+        const currentInp = row as HTMLElement;
+        if (targetSemester === 'all' || currentInp.getAttribute('data-semester') === targetSemester) {
+          currentInp.style.display = 'table-row';
+        } else {
+          currentInp.style.display = 'none';
+        }
+      });
+    });
+  });
+
+  // 2. INTERACTIVE INLINE EDITING FORM SUITE
+  const formKurikulum = document.getElementById('main-form-kurikulum') as HTMLFormElement;
+  const inputId = document.getElementById('input-id') as HTMLInputElement;
+  const formIcon = document.getElementById('form-icon') as HTMLElement;
+  const formText = document.getElementById('form-text') as HTMLElement;
+  const btnSubmitAction = document.getElementById('btn-submit-action') as HTMLButtonElement;
+  const btnBatalEdit = document.getElementById('btn-batal-edit') as HTMLButtonElement;
+
+  document.querySelectorAll('.btn-trigger-edit').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const target = e.target as HTMLButtonElement;
+      const jsonRaw = target.getAttribute('data-mk');
+      if (!jsonRaw) return;
+
+      const mk = JSON.parse(jsonRaw);
+
+      // Suapkan murni value data ke boks input loteng atas otomatis!
+      inputId.value = mk.id;
+      (document.getElementById('input-semester') as HTMLSelectElement).value = mk.semester;
+      (document.getElementById('input-kode') as HTMLInputElement).value = mk.kode_mk;
+      (document.getElementById('input-nama') as HTMLInputElement).value = mk.nama_mk;
+      (document.getElementById('input-sks') as HTMLSelectElement).value = String(mk.sks);
+      (document.getElementById('input-rps') as HTMLInputElement).value = mk.rps_url === '#' ? '' : mk.rps_url;
+      (document.getElementById('input-silabus') as HTMLInputElement).value = mk.silabus_url === '#' ? '' : mk.silabus_url;
+      (document.getElementById('input-kelompok') as HTMLSelectElement).value = mk.kelompok || 'Wajib Program Studi';
+
+
+      // Transformasi Kosmetik UI menjadi Mode Edit Agung
+      if (formIcon) { formIcon.innerHTML = '✏️'; formIcon.style.color = '#4f46e5'; }
+      if (formText) formText.innerText = `Edit Data Mata Kuliah: ${mk.kode_mk}`;
+      if (btnSubmitAction) {
+        btnSubmitAction.innerText = '🔄 Perbarui Mata Kuliah di Database D1';
+        btnSubmitAction.style.backgroundColor = '#4f46e5'; // Ubah tombol jadi ungu elit
+      }
+      if (btnBatalEdit) btnBatalEdit.style.display = 'inline-block'; // Tampilkan tombol batal
+
+      // Gulirkan layar ke atas selembut sutra biar bapak langsung fokus mengedit data
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  });
+
+  // 3. ACTION EVENT: RESET BALIK KELUAR DARI MODE EDIT (BATAL)
+  btnBatalEdit?.addEventListener('click', () => {
+    if (formKurikulum) formKurikulum.reset();
+    if (inputId) inputId.value = '';
+    (document.getElementById('input-kelompok') as HTMLSelectElement).value = 'Wajib Program Studi';
+    if (formIcon) { formIcon.innerHTML = '➕'; formIcon.style.color = '#10b981'; }
+    if (formText) formText.innerText = 'Suntik Mata Kuliah Baru ke Database D1';
+    if (btnSubmitAction) {
+      btnSubmitAction.innerText = '🚀 Simpan Mata Kuliah Baru ke Database D1';
+      btnSubmitAction.style.backgroundColor = '#10b981'; // Balik ke ijo emerald asli
+    }
+    btnBatalEdit.style.display = 'none';
+  });
+</script>

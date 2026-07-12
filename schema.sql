@@ -51,3 +51,22 @@ INSERT INTO daftar_unduhan (nama, kategori, format, ukuran, download_url) VALUES
 -- Isi Data Sampel Jurnal Biar Langsung Muncul di Web
 INSERT INTO daftar_jurnal (judul, penulis, vol, status, pdf_url) VALUES 
 ('Implementasi Manajemen Kurikulum Berbasis Nilai Islam di Era Digital', 'Dr. Ahmad Fauzi, M.Pd.', 'Vol. 5 No. 1 (2025)', 'Sinta 4', '#');
+
+-- 📚 SILAKAN TEMPEL (PASTE) STRUKTUR TABEL BARU INI TEPAT DI PALING KOLONG BAWAH FILE schema.sql BAPAK!
+DROP TABLE IF EXISTS kurikulum_obe;
+CREATE TABLE kurikulum_obe (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    semester TEXT NOT NULL,         -- Contoh: 'Semester I', 'Semester II'
+    kode_mk TEXT NOT NULL UNIQUE,   -- Contoh: 'APIA110012'
+    nama_mk TEXT NOT NULL,          -- Contoh: 'Pendidikan Agama'
+    sks INTEGER NOT NULL,           -- Contoh: 2
+    rps_url TEXT DEFAULT '#',
+    silabus_url TEXT DEFAULT '#',
+    tanggal_ditambahkan TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+-- BISA SEKALIGUS SUNTIK DATA SAMPEL AWAL OBE BIAR PERAWANNYA LANGSUNG JALAN:
+INSERT INTO kurikulum_obe (semester, kode_mk, nama_mk, sks) VALUES 
+('Semester I', 'APIA110012', 'Pendidikan Agama', 2),
+('Semester I', 'APIA110022', 'Pancasila', 2),
+('Semester II', 'APIA210062', 'Kewarganegaraan', 2);

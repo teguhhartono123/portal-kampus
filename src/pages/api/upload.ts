@@ -1,65 +1,56 @@
 import type { APIRoute } from 'astro';
-// 1. CARA TERBARU ASTRO v6: Ambil runtime environment Cloudflare secara resmi
-import { env } from 'cloudflare:workers';
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request, locals }) => {
   try {
+    const env = (locals as any).runtime?.env;
+    if (!env) {
+      return new Response(JSON.stringify({ error: 'Runtime Cloudflare tidak ditemukan!' }), { status: 500 });
+    }
+
+    // 1. Ambil database D1 dan R2 bucket dari environment binding Anda
+    const db = env.database_campuses || env.database_kampus;
+    const bucket = env.portal_kampus_backup_bucket;
+
+    if (!db || !bucket) {
+      return new Response(JSON.stringify({ error: 'Gagal terhubung ke database atau R2 bucket!' }), { status: 500 });
+    }
+
     // 2. Membaca kiriman paket form biner foto dari Frontend
     const dataForm = await request.formData();
     const fileFoto = dataForm.get('foto-kampus') as File;
+    const deskripsi = dataForm.get('deskripsi') as string || '';
 
     if (!fileFoto || fileFoto.size === 0) {
-      return new Response(JSON.stringify({ error: 'File foto tidak ditemukan!' }), { 
+      return new Response(JSON.stringify({ error: 'File foto tidak ditemukan!' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' }
       });
     }
 
-    // 3. KONEKSI DATABASE D1: Ambil tangki database Anda
-    const db = (env as any).database_campuses || (env as any).database_kampus;
+    // 3. Generate nama file unik agar tidak menimpa file lama di R2
+    const fileExtension = fileFoto.name.split('.').pop() || 'jpg';
+    const uniqueFileName = `gallery/${Date.now()}-${Math.random().toString(36).substring(2, 7)}.${fileExtension}`;
 
-    if (!db) {
-      throw new Error(
-        'Gagal terhubung ke database_kampus! Periksa kembali file konfigurasi wrangler Anda.'
-      );
-    }
-
-      // Mengonversi file foto menjadi base64 Data URL menggunakan standard web APIs yang didukung penuh oleh Cloudflare Workers
+    // 4. Upload file biner mentah langsung ke Cloudflare R2 bucket
     const arrayBuffer = await fileFoto.arrayBuffer();
-    const bytes = new Uint8Array(arrayBuffer);
-    let biner = '';
-    for (let i = 0; i < bytes.length; i++) {
-      biner += String.fromCharCode(bytes[i]);
-    }
-    const base64Image = `data:${fileFoto.type};base64,${btoa(biner)}`;
+    await bucket.put(uniqueFileName, arrayBuffer, {
+      httpMetadata: { contentType: fileFoto.type }
+    });
 
-    // Clean description handling: Replace dash/underscore characters with empty spaces
-    const deskripsiOtomatis = fileFoto.name
-      .replace(/\.[^/.]+$/, '')
-      .replace(/[-_]/g, ' ');
+    // 5. Buat alamat URL lokal untuk mengakses foto tersebut
+    const fileUrl = `/api/gallery-image?key=${uniqueFileName}`;
 
-    // 4. EKSEKUSI QUERY SQL INSERT: Inject the real image data URL and clean description strings
-    await db
-      .prepare('INSERT INTO galeri_foto (url, deskripsi) VALUES (?, ?)')
-      .bind(base64Image, deskripsiOtomatis)
-      .run();
+    // 6. Simpan string URL yang ringan ke dalam database D1 Anda
+    await db.prepare(
+      "INSERT INTO galeri_foto (url, deskripsi) VALUES (?, ?)"
+    ).bind(fileUrl, deskripsi).run();
 
-    // 5. Mengembalikan laporan sukses biner ke Frontend
-    return new Response(
-      JSON.stringify({
-        pesan: 'Sukses! Catatan arsip foto kampus Anda telah resmi disimpan permanen ke dalam Cloudflare D1 Database.',
-        namaFile: fileFoto.name,
-        ukuran: `${(fileFoto.size / 1024 / 1024).toFixed(2)} MB`,
-      }),
-      {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' },
-      }
-    );
-  } catch (error: any) {
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
+    return new Response(JSON.stringify({ success: true, url: fileUrl }), {
+      status: 200,
       headers: { 'Content-Type': 'application/json' }
     });
+
+  } catch (error: any) {
+    return new Response(JSON.stringify({ error: error.message }), { status: 500 });
   }
 };
