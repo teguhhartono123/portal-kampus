@@ -53,7 +53,7 @@ if (request.method === "POST" && db) {
           )
           .bind(semester, kelompok, kode_mk, nama_mk, parseInt(sks, 10), rps_url, silabus_url, parseInt(idData, 10))
           .run();
-          statusPesan = `🔄 Sukses! Data mata kuliah ${kode_mk} lunas diperbarui di database D1!`;
+          statusPesan = `🔄 Sukses! Data mata kuliah ${kode_mk} berhasil diperbarui di database D1!`;
           tipePesan = "sukses";
         } else {
           await db.prepare(
@@ -148,7 +148,7 @@ const totalSemuaSKS = Object.values(rekapSKS).reduce((a, b) => a + b, 0);
     <!-- 📥 SEKTOR 1: FORM INPUT TAMBAH & EDIT DATA (MUTLI-STATE ENGINE) -->
     <div style="padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.01);">
       <h3 style="margin: 0 0 16px 0; color: #0f172a; font-size: 1.15rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
-        <span id="form-icon" style="color: #10b981;">➕</span> <span id="form-text">Suntik Mata Kuliah Baru ke Database D1</span>
+        <span id="form-icon" style="color: #10b981;">➕</span> <span id="form-text">Tambah Mata Kuliah Baru ke Database D1</span>
       </h3>
       <form id="main-form-kurikulum" method="POST" action="/admin/kurikulum" style="display: flex; flex-direction: column; gap: 14px;">
         <input type="hidden" name="form_type" value="tambah_kurikulum" />

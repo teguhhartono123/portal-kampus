@@ -146,7 +146,16 @@ const isAkademikActive = currentPath === '/akademik';
       >KALENDER AKADEMIK</a
     >
     <a
-      href="/akademik#kurikulum"
+      href="/akademik"
+      style={`display: block; padding: 8px 12px; font-size: 0.8rem; font-weight: 600; text-decoration: none; border-radius: 6px; margin-top: 4px; color: ${currentPath === '/akademik' ? '#4f46e5' : '#475569'}; background-color: ${currentPath === '/kurikulum' ? '#f1f5f9' : 'transparent'};`}
+      onmouseover="this.style.backgroundColor='#f1f5f9'"
+      onmouseout={currentPath === '/akademik'
+        ? "this.style.backgroundColor='#f1f5f9'"
+        : "this.style.backgroundColor='transparent'"}>📅 Kalender Akademik</a
+    >
+
+    <a 
+      href="/kurikulum"
       style={`display: block; padding: 8px 12px; font-size: 0.8rem; font-weight: 600; text-decoration: none; border-radius: 6px; margin-top: 4px; color: ${currentPath === '/akademik' ? '#4f46e5' : '#475569'}; background-color: ${currentPath === '/kurikulum' ? '#f1f5f9' : 'transparent'};`}
       onmouseover="this.style.backgroundColor='#f1f5f9'"
       onmouseout={currentPath === '/kurikulum'

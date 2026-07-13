@@ -21,8 +21,8 @@
 		}
 	],
 	"vars": {
-		"ADMIN_USERNAME": "ganti_pake_username_pilihan_abang",
-		"ADMIN_PASSWORD": "ganti_pake_password_pilihan_abang"
+		"ADMIN_USERNAME": "stityamal",
+		"ADMIN_PASSWORD": "stityamal"
 	},
 	"r2_buckets": [
 		{
