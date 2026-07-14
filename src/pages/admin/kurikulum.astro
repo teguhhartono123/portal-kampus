@@ -96,23 +96,24 @@ if (db) {
 
 const kelompokSemester = ['Semester I', 'Semester II', 'Semester III', 'Semester IV', 'Semester V', 'Semester VI', 'Semester VII', 'Semester VIII'];
 
-// 🧠 AGGREGATION ENGINE: Otomatis menghitung dan mengelompokkan total SKS secara dynamic dari atas!
-const rekapSKS = {
-  'Wajib Universitas': 0,
-  'Wajib Fakultas': 0,
-  'Wajib Program Studi': 0,
-  'Pilihan Program Studi': 0,
-  'MBKM Program Studi': 0
-};
+// 🧠 AGGREGATION ENGINE: Otomatis menghitung dan mengelompokkan total SKS secara DYNAMIC LIVE dari database!
+const rekapSKS: Record<string, number> = {};
 
 daftarMatakuliah.forEach((item: any) => {
+  // Langsung sedot teks kalimat apa adanya dari kolom kelompok database D1 bapak
   const kat = item.kelompok || 'Wajib Program Studi';
-  if (rekapSKS.hasOwnProperty(kat)) {
-    rekapSKS[kat as keyof typeof rekapSKS] += Number(item.sks || 0);
+  
+  // Jika teks kelompok tersebut belum terdaftar di mesin hitung, auto-buat kamarnya!
+  if (!rekapSKS.hasOwnProperty(kat)) {
+    rekapSKS[kat] = 0;
   }
+  
+  // Akumulasikan bobot kredit SKS secara dynamic real-time
+  rekapSKS[kat] += Number(item.sks || 0);
 });
 
 const totalSemuaSKS = Object.values(rekapSKS).reduce((a, b) => a + b, 0);
+
 ---
 
 
@@ -166,13 +167,15 @@ const totalSemuaSKS = Object.values(rekapSKS).reduce((a, b) => a + b, 0);
           </div>
           <div style="flex: 1; min-width: 200px;">
             <label style="display: block; font-size: 0.8rem; font-weight: 700; color: #475569; margin-bottom: 6px;">Pilih Kelompok Mata Kuliah</label>
-            <select id="input-kelompok" name="kelompok" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem; background-color: #fff; cursor: pointer;">
-                <option value="Wajib Universitas">Wajib Universitas</option>
-                <option value="Wajib Fakultas">Wajib Fakultas</option>
-                <option value="Wajib Program Studi">Wajib Program Studi</option>
-                <option value="Pilihan Program Studi">Pilihan Program Studi</option>
-                <option value="MBKM Program Studi">MBKM Program Studi</option>
-            </select>
+            <input 
+                type="text"
+                id="input-kelompok" 
+                name="kelompok" 
+                placeholder="Contoh: Wajib Universitas, Wajib Program Studi, dll."
+                required
+                style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; 
+                font-size: 0.9rem; color: #0f172a; box-sizing: border-box;"
+            />
           </div>
           <div style="flex: 1; min-width: 200px;">
             <label style="display: block; font-size: 0.8rem; font-weight: 700; color: #475569; margin-bottom: 6px;">Kode Mata Kuliah</label>
@@ -395,7 +398,7 @@ const totalSemuaSKS = Object.values(rekapSKS).reduce((a, b) => a + b, 0);
       (document.getElementById('input-sks') as HTMLSelectElement).value = String(mk.sks);
       (document.getElementById('input-rps') as HTMLInputElement).value = mk.rps_url === '#' ? '' : mk.rps_url;
       (document.getElementById('input-silabus') as HTMLInputElement).value = mk.silabus_url === '#' ? '' : mk.silabus_url;
-      (document.getElementById('input-kelompok') as HTMLSelectElement).value = mk.kelompok || 'Wajib Program Studi';
+      (document.getElementById('input-kelompok') as HTMLInputElement).value = mk.kelompok || '';
 
 
       // Transformasi Kosmetik UI menjadi Mode Edit Agung
@@ -416,7 +419,7 @@ const totalSemuaSKS = Object.values(rekapSKS).reduce((a, b) => a + b, 0);
   btnBatalEdit?.addEventListener('click', () => {
     if (formKurikulum) formKurikulum.reset();
     if (inputId) inputId.value = '';
-    (document.getElementById('input-kelompok') as HTMLSelectElement).value = 'Wajib Program Studi';
+    (document.getElementById('input-kelompok') as HTMLInputElement).value = '';
     if (formIcon) { formIcon.innerHTML = '➕'; formIcon.style.color = '#10b981'; }
     if (formText) formText.innerText = 'Suntik Mata Kuliah Baru ke Database D1';
     if (btnSubmitAction) {

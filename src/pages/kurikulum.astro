@@ -19,24 +19,25 @@ if (db) {
   }
 }
 
-// 🧠 AGGREGATION ENGINE 1: Hitung otomatis Total SKS dan persentase kelompok untuk tabel rekap bawah
-const rekapKelompokSKS = {
-  'Wajib Universitas': 0,
-  'Wajib Fakultas': 0,
-  'Wajib Program Studi': 0,
-  'Pilihan Program Studi': 0,
-  'MBKM Program Studi': 0
-};
+// 🧠 AGGREGATION ENGINE 1: Hitung otomatis Total SKS dan persentase kelompok secara DYNAMIC LIVE dari database!
+const rekapKelompokSKS: Record<string, number> = {};
 
 daftarMatakuliah.forEach((item: any) => {
+  // Langsung sedot teks kalimat kelompok apa adanya dari kolom kelompok database D1 bapak
   const kat = item.kelompok || 'Wajib Program Studi';
-  if (rekapKelompokSKS.hasOwnProperty(kat)) {
-    rekapKelompokSKS[kat as keyof typeof rekapKelompokSKS] += Number(item.sks || 0);
+  
+  // Jika nama kelompok baru tersebut belum ada kamarnya di mesin hitung, auto-buat kamarnya!
+  if (!rekapKelompokSKS.hasOwnProperty(kat)) {
+    rekapKelompokSKS[kat] = 0;
   }
+  
+  // Akumulasikan bobot kredit SKS secara live dynamic real-time
+  rekapKelompokSKS[kat] += Number(item.sks || 0);
 });
 
 const totalSemuaSKS = Object.values(rekapKelompokSKS).reduce((a, b) => a + b, 0);
 
+// 🚨 TETAP DIPAKAI SULTAN: Penggerak utama loop sebaran boks kartu semester di HTML bawah!
 const listSemester = ['Semester I', 'Semester II', 'Semester III', 'Semester IV', 'Semester V', 'Semester VI', 'Semester VII', 'Semester VIII'];
 ---
 
@@ -124,7 +125,7 @@ const listSemester = ['Semester I', 'Semester II', 'Semester III', 'Semester IV'
     <!-- ========================================================================= -->
     <section style="margin-top: 10px; display: flex; flex-direction: column; gap: 18px;">
       <div style="padding: 0 5px;">
-        <h2 style="font-size: 1.35rem; color: #0f172a; font-weight: 800; margin: 0; letter-spacing: -0.3px;">
+        <h2 style="font-size: 1.25rem; color: #0f172a; font-weight: 800; margin: 0; letter-spacing: -0.3px;">
           Rincian Mata Kuliah Program Studi Pendidikan Agama Islam STIT YA'MAL
         </h2>
       </div>
