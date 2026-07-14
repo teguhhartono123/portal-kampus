@@ -79,8 +79,13 @@ if (request.method === "POST" && db) {
     }
 
   } catch (error: any) {
+    if(error.message.includes('UNIQUE') || error.message.includes('constraint')){
+        statusPesan = "⚠️ Gagal Menyimpan! Kode mata kuliah tidak boleh sama.";
+        tipePesan = "gagal";
+    } else {
     statusPesan = `❌ Gagal Mengeksekusi Data: ${error.message}`;
     tipePesan = "gagal";
+    }
   }
 }
 
