@@ -489,59 +489,6 @@ if (db) {
       </form>
     </div>
 
-
-        <!-- ======================================================== -->
-    <!-- 📸 FORMULIR UPLOAD ARSIP FOTO ASLI (CHOOSE FILE BINARY)  -->
-    <!-- ======================================================== -->
-    <div style="background-color: #f8fafc; padding: 28px; border-radius: 14px; border: 2px dashed #cbd5e1; display: flex; flex-direction: column; gap: 16px; margin-top: 12px;">
-      <div>
-        <h3 style="margin: 0 0 4px 0; font-size: 1.15rem; color: #0f172a; display: flex; align-items: center; gap: 8px;">
-          📁 Formulir Upload Arsip Foto Internal Kampus
-        </h3>
-        <p style="margin: 0; color: #64748b; font-size: 0.85rem; font-weight: 500;">
-          Pilih berkas dokumen foto asli (.jpg/.png) langsung dari penyimpanan lokal komputer/HP untuk diterbitkan ke cloud server.
-        </p>
-      </div>
-
-      <!-- Form menggunakan enctype multipart/form-data untuk menangkap file binary -->
-      <form method="POST" action="/admin/dashboard" enctype="multipart/form-data" style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px;">
-        <input type="hidden" name="form_type" value="upload_file_galeri" />
-        
-        <!-- Kolom Pilih Berkas Gambar -->
-        <div style="flex: 1; min-width: 250px; display: flex; flex-direction: column; gap: 6px;">
-          <label style="font-size: 0.8rem; font-weight: 700; color: #475569;">Select Documentation File Images:</label>
-          <input 
-            type="file" 
-            name="berkas_foto" 
-            accept="image/*" 
-            required 
-            style="padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem; background-color: #ffffff; width: 100%; box-sizing: border-box;" 
-          />
-        </div>
-
-        <!-- Kolom Input Teks Deskripsi Kegiatan -->
-        <div style="flex: 1.5; min-width: 300px; display: flex; flex-direction: column; gap: 6px;">
-          <label style="font-size: 0.8rem; font-weight: 700; color: #475569;">Short Photo Description Activity:</label>
-          <input 
-            type="text" 
-            name="deskripsi_foto" 
-            placeholder="Contoh: Kegiatan Orientasi Mahasiswa Baru Tahun Akademik 2026..." 
-            required 
-            style="padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem; width: 100%; box-sizing: border-box;" 
-          />
-        </div>
-
-        <!-- Tombol Aksi Eksekusi Upload -->
-        <button 
-          type="submit" 
-          style="padding: 11px 24px; background-color: #10b981; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 6px; height: 41px;"
-        >
-          🚀 Unggah ke Server Cloud
-        </button>
-      </form>
-    </div>
-
-
     <!-- ==================== PART 2-B: DATABASES REAL-TIME VIEWS TABLES ==================== -->
     
     <!-- TABLE 1: ANNOUNCEMENTS MANAGEMENT -->
@@ -644,6 +591,57 @@ if (db) {
     <!-- TABEL MANAGEMENT GALERI FOTO -->
     <div id="section-gallery" style="background-color: #ffffff; padding: 24px; border-radius: 12px; border: 1px solid #e2e8f0; margin-top: 24px;">
     <h3 style="margin: 0 0 16px 0; font-size: 1.1rem; color: #0f172a;">⚔️ Manage Photo Gallery Index</h3>
+
+    <!-- ======================================================== -->
+    <!-- 📸 FORMULIR UPLOAD ARSIP FOTO ASLI (CHOOSE FILE BINARY)  -->
+    <!-- ======================================================== -->
+    <div style="background-color: #f8fafc; padding: 28px; border-radius: 14px; border: 2px dashed #cbd5e1; display: flex; flex-direction: column; gap: 16px; margin-top: 12px;">
+      <div>
+        <h3 style="margin: 0 0 4px 0; font-size: 1.15rem; color: #0f172a; display: flex; align-items: center; gap: 8px;">
+          📁 Formulir Upload Arsip Foto Internal Kampus
+        </h3>
+        <p style="margin: 0; color: #64748b; font-size: 0.85rem; font-weight: 500;">
+          Pilih berkas dokumen foto asli (.jpg/.png) langsung dari penyimpanan lokal komputer/HP untuk diterbitkan ke cloud server.
+        </p>
+      </div>
+
+      <!-- Form menggunakan enctype multipart/form-data untuk menangkap file binary -->
+      <form method="POST" action="/admin/dashboard" enctype="multipart/form-data" style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px;">
+        <input type="hidden" name="form_type" value="upload_file_galeri" />
+        
+        <!-- Kolom Pilih Berkas Gambar -->
+        <div style="flex: 1; min-width: 250px; display: flex; flex-direction: column; gap: 6px;">
+          <label style="font-size: 0.8rem; font-weight: 700; color: #475569;">Select Documentation File Images:</label>
+          <input 
+            type="file" 
+            name="berkas_foto" 
+            accept="image/*" 
+            required 
+            style="padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem; background-color: #ffffff; width: 100%; box-sizing: border-box;" 
+          />
+        </div>
+
+        <!-- Kolom Input Teks Deskripsi Kegiatan -->
+        <div style="flex: 1.5; min-width: 300px; display: flex; flex-direction: column; gap: 6px;">
+          <label style="font-size: 0.8rem; font-weight: 700; color: #475569;">Short Photo Description Activity:</label>
+          <input 
+            type="text" 
+            name="deskripsi_foto" 
+            placeholder="Contoh: Kegiatan Orientasi Mahasiswa Baru Tahun Akademik 2026..." 
+            required 
+            style="padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem; width: 100%; box-sizing: border-box;" 
+          />
+        </div>
+
+        <!-- Tombol Aksi Eksekusi Upload -->
+        <button 
+          type="submit" 
+          style="padding: 11px 24px; background-color: #10b981; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 6px; height: 41px;"
+        >
+          🚀 Unggah ke Server Cloud
+        </button>
+      </form>
+    </div>
     <div style="overflow-x: auto;">
         <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
           <thead>
@@ -655,7 +653,7 @@ if (db) {
             </tr>
           </thead>
 
-        <tbody>
+          <tbody>
             {listGaleri.map((g) => (
             <tr style="border-bottom: 1px solid #f1f5f9;">
                 <td style="padding: 12px; font-weight: bold; color: #64748b;">#{g.id}</td>
