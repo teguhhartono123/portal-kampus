@@ -418,77 +418,6 @@ if (db) {
 
     </div>
 
-    {/* ========================================================================= */}
-    {/* 🟢 FORM HIJAU PMB: MANAJEMEN BROSUR UTAMA (VERSI UPGRADE VERTICAL ANTI-LUBER) */}
-    {/* ========================================================================= */}
-    <div style="background-color: #f0fdf4; padding: 24px; border-radius: 14px; border: 2px solid #bbf7d0; box-shadow: 0 1px 3px rgba(0,0,0,0.02); display: flex; flex-direction: column; gap: 16px; width: 100%; box-sizing: border-box; margin-bottom: 14px;">
-      <div>
-        <h3 style="margin: 0 0 4px 0; font-size: 1.15rem; color: #166534; display: flex; align-items: center; gap: 8px; font-weight: 700;">
-          📄 Pintu Manajemen Brosur Utama PMB STIT YA'MAL
-        </h3>
-        <p style="margin: 0; color: #15803d; font-size: 0.85rem; font-weight: 500; opacity: 0.9;">
-          Unggah berkas brosur resmi (PDF/Gambar). Sistem otomatis memproses pembaruan halaman depan publik secara real-time.
-        </p>
-      </div>
-
-      <form id="form-brosur-pmb" method="POST" action="/admin/dashboard" enctype="multipart/form-data" style="margin: 0; display: flex; flex-direction: column; gap: 16px; width: 100%;">
-        <input type="hidden" name="form_type" value="update_brosur_pmb" />
-        
-        {/* 🌟 KUNCI RAHASIA: Mengubah susunan menjadi full-width vertikal ke bawah agar ruang teks melesat longgar */}
-        <div style="display: flex; flex-direction: column; gap: 14px; width: 100%; box-sizing: border-box;">
-          
-          {/* Baris Atas: Input File Berkas (Full-Width) */}
-          <div style="display: flex; flex-direction: column; gap: 6px; width: 100%;">
-            <label style="font-size: 0.82rem; font-weight: 700; color: #1e293b;">Pilih Berkas Brosur (PDF, JPEG, JPG, PNG, WEBP):</label>
-            <div style="width: 100%; background-color: #ffffff; border: 1px solid #bbf7d0; border-radius: 6px; padding: 8px 12px; box-sizing: border-box; min-height: 42px; display: flex; align-items: center;">
-              <input 
-                type="file" 
-                id="file-brosur-pmb"
-                name="berkas_brosur_utama" 
-                accept=".pdf,.jpg,.jpeg,.png,.webp" 
-                required 
-                style="font-size: 0.85rem; color: #475569; width: 100%; cursor: pointer;" 
-                onchange="
-                  const file = this.files;
-                  if (file) {
-                    const maxSize = 1.5 * 1024 * 1024;
-                    if (file.size > maxSize) {
-                      alert('Peringatan Sistem: Berkas gagal diproses karena ukuran dokumen yang Anda pilih (' + (file.size / (1024 * 1024)).toFixed(2) + ' MB) telah melampaui alokasi penyimpanan yang ditentukan untuk optimalisasi pangkalan data. Mohon lakukan kompresi ukuran berkas terlebih dahulu atau pilih dokumen lain.');
-                      this.value = '';
-                    }
-                  }
-                "
-              />
-            </div>
-          </div>
-
-          {/* Baris Tengah: Input Label Teks (Full-Width) */}
-          <div style="display: flex; flex-direction: column; gap: 6px; width: 100%;">
-            <label style="font-size: 0.82rem; font-weight: 700; color: #1e293b;">Label Informasi Publikasi Brosur:</label>
-            <input 
-              type="text" 
-              name="label_brosur_pmb" 
-              placeholder="Contoh: Brosur Resmi Penerimaan Mahasiswa Baru TA 2026/2027" 
-              required 
-              style="padding: 11px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.88rem; width: 100%; box-sizing: border-box; background-color: #ffffff; min-height: 42px;" 
-            />
-          </div>
-        </div>
-
-        {/* Baris Tombol Aksi Paling Bawah */}
-        <div style="width: 100%; box-sizing: border-box; margin-top: 4px;">
-          <button 
-            type="submit" 
-            style="padding: 12px 24px; background-color: #059669; color: white; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 0.9rem; display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; width: 100%; transition: background-color 0.15s;"
-            onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#047857'}
-            onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#059669'}
-          >
-            🔄 Sinkronisasikan Brosur PMB Utama
-          </button>
-        </div>
-      </form>
-    </div>
-
     <!-- ==================== PART 2-B: DATABASES REAL-TIME VIEWS TABLES ==================== -->
     
     <!-- TABLE 1: ANNOUNCEMENTS MANAGEMENT -->
@@ -592,7 +521,7 @@ if (db) {
     <div id="section-gallery" style="background-color: #ffffff; padding: 24px; border-radius: 12px; border: 1px solid #e2e8f0; margin-top: 24px;">
     <h3 style="margin: 0 0 16px 0; font-size: 1.1rem; color: #0f172a;">⚔️ Manage Photo Gallery Index</h3>
 
-    <!-- ======================================================== -->
+    <!-- tanggal 27/juli/2026 ada request buat merge input ke dalam box tabel galeri photo======================================================== -->
     <!-- 📸 FORMULIR UPLOAD ARSIP FOTO ASLI (CHOOSE FILE BINARY)  -->
     <!-- ======================================================== -->
     <div style="background-color: #f8fafc; padding: 28px; border-radius: 14px; border: 2px dashed #cbd5e1; display: flex; flex-direction: column; gap: 16px; margin-top: 12px;">
@@ -680,6 +609,78 @@ if (db) {
       <h3 style="margin: 0; font-size: 1.1rem; color: #1e293b; display: flex; align-items: center; gap: 6px; font-weight: 700;">
         ⚔️ Manage Active Brochure Asset
       </h3>
+
+
+    {/* ========================================================================= */}
+    {/* 🟢 FORM HIJAU PMB: MANAJEMEN BROSUR UTAMA (VERSI UPGRADE VERTICAL ANTI-LUBER) */}
+    {/* ========================================================================= */}
+    <div style="background-color: #f0fdf4; padding: 24px; border-radius: 14px; border: 2px solid #bbf7d0; box-shadow: 0 1px 3px rgba(0,0,0,0.02); display: flex; flex-direction: column; gap: 16px; width: 100%; box-sizing: border-box; margin-bottom: 14px;">
+      <div>
+        <h3 style="margin: 0 0 4px 0; font-size: 1.15rem; color: #166534; display: flex; align-items: center; gap: 8px; font-weight: 700;">
+          📄 Pintu Manajemen Brosur Utama PMB STIT YA'MAL
+        </h3>
+        <p style="margin: 0; color: #15803d; font-size: 0.85rem; font-weight: 500; opacity: 0.9;">
+          Unggah berkas brosur resmi (PDF/Gambar). Sistem otomatis memproses pembaruan halaman depan publik secara real-time.
+        </p>
+      </div>
+
+      <form id="form-brosur-pmb" method="POST" action="/admin/dashboard" enctype="multipart/form-data" style="margin: 0; display: flex; flex-direction: column; gap: 16px; width: 100%;">
+        <input type="hidden" name="form_type" value="update_brosur_pmb" />
+        
+        {/* 🌟 KUNCI RAHASIA: Mengubah susunan menjadi full-width vertikal ke bawah agar ruang teks melesat longgar */}
+        <div style="display: flex; flex-direction: column; gap: 14px; width: 100%; box-sizing: border-box;">
+          
+          {/* Baris Atas: Input File Berkas (Full-Width) */}
+          <div style="display: flex; flex-direction: column; gap: 6px; width: 100%;">
+            <label style="font-size: 0.82rem; font-weight: 700; color: #1e293b;">Pilih Berkas Brosur (PDF, JPEG, JPG, PNG, WEBP):</label>
+            <div style="width: 100%; background-color: #ffffff; border: 1px solid #bbf7d0; border-radius: 6px; padding: 8px 12px; box-sizing: border-box; min-height: 42px; display: flex; align-items: center;">
+              <input 
+                type="file" 
+                id="file-brosur-pmb"
+                name="berkas_brosur_utama" 
+                accept=".pdf,.jpg,.jpeg,.png,.webp" 
+                required 
+                style="font-size: 0.85rem; color: #475569; width: 100%; cursor: pointer;" 
+                onchange="
+                  const file = this.files;
+                  if (file) {
+                    const maxSize = 1.5 * 1024 * 1024;
+                    if (file.size > maxSize) {
+                      alert('Peringatan Sistem: Berkas gagal diproses karena ukuran dokumen yang Anda pilih (' + (file.size / (1024 * 1024)).toFixed(2) + ' MB) telah melampaui alokasi penyimpanan yang ditentukan untuk optimalisasi pangkalan data. Mohon lakukan kompresi ukuran berkas terlebih dahulu atau pilih dokumen lain.');
+                      this.value = '';
+                    }
+                  }
+                "
+              />
+            </div>
+          </div>
+
+          {/* Baris Tengah: Input Label Teks (Full-Width) */}
+          <div style="display: flex; flex-direction: column; gap: 6px; width: 100%;">
+            <label style="font-size: 0.82rem; font-weight: 700; color: #1e293b;">Label Informasi Publikasi Brosur:</label>
+            <input 
+              type="text" 
+              name="label_brosur_pmb" 
+              placeholder="Contoh: Brosur Resmi Penerimaan Mahasiswa Baru TA 2026/2027" 
+              required 
+              style="padding: 11px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.88rem; width: 100%; box-sizing: border-box; background-color: #ffffff; min-height: 42px;" 
+            />
+          </div>
+        </div>
+
+        {/* Baris Tombol Aksi Paling Bawah */}
+        <div style="width: 100%; box-sizing: border-box; margin-top: 4px;">
+          <button 
+            type="submit" 
+            style="padding: 12px 24px; background-color: #059669; color: white; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 0.9rem; display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; width: 100%; transition: background-color 0.15s;"
+            onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#047857'}
+            onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#059669'}
+          >
+            🔄 Sinkronisasikan Brosur PMB Utama
+          </button>
+        </div>
+      </form>
+    </div>
       
       <div style="overflow-x: auto; width: 100%;">
         <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
