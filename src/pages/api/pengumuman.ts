@@ -1,12 +1,19 @@
 import type { APIRoute } from 'astro';
+import { env } from 'cloudflare:workers';
+
 export const prerender = false;
 
-export const GET: APIRoute = async ({ locals }) => {
+export const GET: APIRoute = async () => {
   try {
-    const db = (locals as any).runtime?.env?.DB;
-    if (!db) return new Response(JSON.stringify({ error: "DB missing!" }), { status: 500 });
+    // Menggunakan cara Astro v6 / Cloudflare Workers resmi sesuai saran error
+    const db = (env as any).database_campuses || (env as any).database_kampus || (env as any).DB;
 
-    // Mengambil data dari tabel yang benar sesuai dashboard admin Anda
+    
+    if (!db) {
+      return new Response(JSON.stringify({ error: "Koneksi database D1 tidak ditemukan!" }), { status: 500 });
+    }
+
+    // Ambil data langsung dari tabel pengumuman Anda
     const { results } = await db.prepare("SELECT * FROM daftar_pengumuman ORDER BY id DESC").all();
 
     return new Response(JSON.stringify(results), {
