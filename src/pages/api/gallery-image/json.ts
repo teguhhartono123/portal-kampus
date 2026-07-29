@@ -6,7 +6,7 @@ export const GET: APIRoute = async ({ locals }) => {
     if (!db) return new Response(JSON.stringify({ error: "DB missing!" }), { status: 500 });
 
     // 🟢 Ambil data tabel gallery_image (sesuaikan nama tabel aslimu di Cloudflare D1 ya!)
-    const { results } = await db.prepare("SELECT * FROM gallery_image ORDER BY id DESC").all();
+    const { results } = await db.prepare("SELECT * FROM galeri_foto ORDER BY id DESC").all();
 
     return new Response(JSON.stringify(results), {
       status: 200,
