@@ -1,29 +1,43 @@
 import type { APIRoute } from 'astro';
-import { env } from 'cloudflare:workers';
 
-export const prerender = false;
+// 1. Kita buat cetakan tipe data (Interface) agar kodingan kita aman dari typo
+interface InfoKampus {
+  id: number;
+  judul: string;
+  tanggal: string;
+  tipe: 'akademik' | 'fasilitas' | 'tulisan';
+}
 
+// 2. Ini adalah fungsi backend API yang akan berjalan di server Cloudflare
 export const GET: APIRoute = async () => {
-  try {
-    // Menggunakan cara Astro v6 / Cloudflare Workers resmi sesuai saran error
-    const db = (env as any).database_campuses || (env as any).database_kampus || (env as any).DB;
+  // Kita tiru data asli dari menu website STIT Ya'mal Anda tadi
+  const dataPengumuman: InfoKampus[] = [
+    {
+      id: 1,
+      judul: 'Surat Edaran Pencetakan Ijazah',
+      tanggal: '29 Des 2018',
+      tipe: 'akademik',
+    },
+    {
+      id: 2,
+      judul: 'Jadwal Ujian Akhir Semester (UAS) Ganjil',
+      tanggal: '17 Des 2018',
+      tipe: 'akademik',
+    },
+    {
+      id: 3,
+      judul: 'Modul Ruang Laboratorium Komputer Baru',
+      tanggal: '05 Jun 2026',
+      tipe: 'fasilitas',
+    },
+  ];
 
-    
-    if (!db) {
-      return new Response(JSON.stringify({ error: "Koneksi database D1 tidak ditemukan!" }), { status: 500 });
-    }
-
-    // Ambil data langsung dari tabel pengumuman Anda
-    const { results } = await db.prepare("SELECT * FROM daftar_pengumuman ORDER BY id DESC").all();
-
-    return new Response(JSON.stringify(results), {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-      }
-    });
-  } catch (error: any) {
-    return new Response(JSON.stringify({ error: error.message }), { status: 500 });
-  }
+  // Mengembalikan respon berupa data JSON bersih agar bisa dibaca oleh Frontend
+  return new Response(JSON.stringify(dataPengumuman), {
+    status: 200,
+    headers: {
+      'Content-Type': 'application/json',
+      'Access-Control-Allow-Origin': '*', // Biar aman dari error CORS
+    },
+  });
 };
